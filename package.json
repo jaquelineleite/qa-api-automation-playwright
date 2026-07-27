@@ -1,0 +1,35 @@
+{
+  "name": "desafio-api-banco-carrefour",
+  "version": "1.0.0",
+  "description": "Automação de testes de API do desafio Banco Carrefour",
+  "main": "index.js",
+"scripts": {
+  "test": "playwright test",
+  "test:users": "playwright test src/tests/users",
+  "test:auth": "playwright test src/tests/auth",
+  "test:report": "playwright show-report reports/playwright-report",
+  "typecheck": "tsc --noEmit",
+  "allure:generate": "allure generate allure-results --clean -o allure-report",
+  "allure:open": "allure open allure-report",
+  "allure:serve": "allure serve allure-results",
+  "report": "npm run allure:generate && npm run allure:open"
+},
+  "keywords": [
+    "playwright",
+    "api",
+    "typescript",
+    "test-automation"
+  ],
+  "author": "Jaqueline Fernandes de Andrade",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@playwright/test": "^1.58.0",
+    "@types/node": "^25.0.0",
+    "ajv": "^8.17.1",
+    "allure-commandline": "^2.36.0",
+    "allure-playwright": "^3.4.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.0"
+  }
+}
