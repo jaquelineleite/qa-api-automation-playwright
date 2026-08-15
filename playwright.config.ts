@@ -17,5 +17,6 @@ reporter: [
   ['list'],
   ['html', { outputFolder: 'reports/playwright-report', open: 'never' }],
   ['allure-playwright', { outputFolder: 'allure-results' }],
+  ['junit', { outputFile: 'reports/junit/results.xml' }],
 ],
 });

@@ -1,0 +1,36 @@
+stages:
+  - test
+
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .npm/
+
+api-tests:
+  stage: test
+  image: node:20-bookworm
+
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends openjdk-17-jre-headless
+    - npm ci
+
+  script:
+    - npm run typecheck
+    - npm test
+
+  after_script:
+    - npm run allure:generate || true
+
+  artifacts:
+    when: always
+    paths:
+      - reports/
+      - allure-results/
+      - allure-report/
+    reports:
+      junit: reports/junit/results.xml
+    expire_in: 7 days
