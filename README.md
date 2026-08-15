@@ -1,4 +1,7 @@
 # 🚀 Desafio de Automação de Testes de API - Banco Carrefour
+[![API Tests](https://github.com/jaquelineleite/desafio-api-banco-carrefour/actions/workflows/api-tests.yml/badge.svg)](https://github.com/jaquelineleite/desafio-api-banco-carrefour/actions/workflows/api-tests.yml)
+[![GitLab Pipeline](https://gitlab.com/jaquelinefdeandrade/desafio-api-banco-carrefour/badges/main/pipeline.svg)](https://gitlab.com/jaquelinefdeandrade/desafio-api-banco-carrefour/-/pipelines)
+
 
 ## 📋 Sobre o projeto
 
