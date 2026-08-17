@@ -3,15 +3,17 @@
 [![API Tests](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml/badge.svg)](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml)
 [![GitLab Pipeline](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/badges/main/pipeline.svg)](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/-/pipelines)
 
-Projeto de automação de testes de API REST desenvolvido com **Playwright, TypeScript, AJV e Allure**, utilizando a API pública [ServeRest](https://serverest.dev/) como ambiente de testes.
+Projeto de automação de testes de API REST desenvolvido como solução para um desafio técnico de **Quality Assurance**, utilizando **Playwright, TypeScript, AJV, Faker e Allure**, com a API pública [ServeRest](https://serverest.dev/) como ambiente de testes.
 
 O projeto cobre operações CRUD de usuários, autenticação, validações negativas, contrato de API com JSON Schema, validação e utilização de token JWT, geração de dados dinâmicos e integração com pipelines CI/CD no GitHub Actions e GitLab CI.
+
+> **Mapeamento do desafio:** o enunciado utiliza os endpoints `/users`, enquanto a ServeRest disponibiliza o recurso equivalente em `/usuarios`. Por isso, os testes utilizam `/usuarios` e `/usuarios/{id}`.
 
 ---
 
 ## 🎯 Objetivo
 
-Demonstrar uma estratégia de Quality Assurance aplicada a testes de API, contemplando:
+Garantir cobertura funcional dos endpoints e requisitos descritos no desafio por meio de testes automatizados de API, contemplando:
 
 - testes funcionais positivos;
 - testes negativos;
@@ -27,7 +29,6 @@ Demonstrar uma estratégia de Quality Assurance aplicada a testes de API, contem
 - relatórios automatizados;
 - execução em pipelines CI/CD.
 
-> A API utilizada possui endpoints em português. Portanto, o recurso de usuários é acessado por `/usuarios`.
 
 ---
 ## 🛠️ Tecnologias
@@ -85,19 +86,19 @@ Demonstrar uma estratégia de Quality Assurance aplicada a testes de API, contem
 ---
 ## ✅ Cobertura funcional
 
-### Usuários
+| Operação | Endpoint do desafio | Endpoint utilizado | Método |
+|---|---|---|---|
+| Criar usuário | `/users` | `/usuarios` | POST |
+| Listar usuários | `/users` | `/usuarios` | GET |
+| Buscar usuário por ID | `/users/{id}` | `/usuarios/{id}` | GET |
+| Atualizar usuário | `/users/{id}` | `/usuarios/{id}` | PUT |
+| Excluir usuário | `/users/{id}` | `/usuarios/{id}` | DELETE |
 
-| Cenário | Endpoint | Método |
-|---|---|---|
-| Criar usuário | `/usuarios` | POST |
-| Listar usuários | `/usuarios` | GET |
-| Buscar usuário por ID | `/usuarios/{id}` | GET |
-| Atualizar usuário | `/usuarios/{id}` | PUT |
-| Excluir usuário | `/usuarios/{id}` | DELETE |
+Além do CRUD, a suíte cobre cenários positivos, negativos, autenticação JWT, contrato da API e rate limit.
 
 ---
 
-## 🔐 Autenticação
+## 🔐 Autenticação JWT
 
 O projeto possui testes para o endpoint:
 
@@ -115,7 +116,7 @@ São validados:
 
 > A validação da estrutura do token não representa validação criptográfica da assinatura do JWT.
 
-Além da validação estrutural, o projeto demonstra a **utilização real do token JWT**:
+Além da validação estrutural, o projeto demonstra a **utilização real do token JWT** em uma rota protegida da ServeRest (`DELETE /carrinhos/concluir-compra`):
 
 - um usuário administrador é criado dinamicamente;
 - o login é realizado via `POST /login`;
@@ -123,11 +124,11 @@ Além da validação estrutural, o projeto demonstra a **utilização real do to
 - uma rota protegida é acessada com o token e retorna `HTTP 200`;
 - a mesma rota é acessada sem token e retorna `HTTP 401`.
 
-Para demonstrar o uso efetivo da autenticação foi utilizada uma rota protegida da ServeRest. O CRUD de `/usuarios` permanece testado conforme o comportamento real disponibilizado pela API pública.
+O CRUD de `/usuarios` permanece testado separadamente, conforme o comportamento disponibilizado pela API pública ServeRest.
 
 ---
 
-## 🧪 Validações de criação de usuário
+## 🧪 Campos obrigatórios e cenários negativos
 
 O payload de usuário utiliza os campos:
 
@@ -140,7 +141,7 @@ O payload de usuário utiliza os campos:
 }
 ```
 
-Foram implementados cenários negativos para validar:
+São validados os seguintes cenários negativos:
 
 - ausência de `nome`;
 - ausência de `email`;
@@ -157,7 +158,7 @@ Também são validados cenários envolvendo:
 
 ## 📐 Validação de contrato com AJV
 
-O projeto utiliza **AJV** para validar o contrato da resposta do:
+O projeto utiliza **AJV** e **JSON Schema** para validar o contrato da resposta do endpoint:
 
 `GET /usuarios`
 
@@ -173,7 +174,7 @@ usuarios[]
   └── _id
 ```
 
-O teste utiliza JSON Schema para detectar alterações inesperadas na estrutura da resposta da API.
+Essa validação permite detectar alterações inesperadas na estrutura da resposta, ausência de propriedades esperadas e mudanças de tipo nos dados retornados pela API.
 
 ---
 
@@ -187,9 +188,9 @@ O teste envia até 101 requisições e espera que a requisição acima do limite
 
 `HTTP 429`
 
-Esse teste é **opt-in** e não é executado automaticamente contra a API pública ServeRest.
+O cenário de rate limit está **implementado**, porém sua execução é **opt-in** e não faz parte da suíte padrão executada contra a API pública ServeRest.
 
-A decisão evita gerar carga desnecessária ou assumir que o ambiente público implementa exatamente essa política.
+Essa decisão evita gerar carga desnecessária no ambiente público e também evita tratar como falha uma política que pode não estar habilitada da mesma forma no ambiente utilizado.
 
 Para executá-lo em um ambiente que implemente essa regra:
 
@@ -266,7 +267,9 @@ npm test
 npm run test:users
 ```
 
-### Testes de autenticação
+### Testes de autenticação e JWT
+
+Executa os cenários de login e utilização do token JWT:
 
 ```bash
 npm run test:auth
@@ -274,11 +277,15 @@ npm run test:auth
 
 ### Rate limit
 
+O teste de rate limit é opt-in. Para executá-lo, informe um ambiente que implemente a regra de 100 requisições por minuto:
+
 ```bash
+RUN_RATE_LIMIT_TEST=true \
+RATE_LIMIT_BASE_URL=https://seu-ambiente.com \
 npm run test:rate-limit
 ```
 
-> O cenário de rate limit somente é efetivamente executado quando as variáveis necessárias são informadas.
+> Sem `RUN_RATE_LIMIT_TEST=true`, o cenário permanece marcado como `skipped` por decisão de projeto.
 
 ---
 
@@ -345,10 +352,14 @@ Testes de API
    ↓
 Geração de relatório Allure
    ↓
-Upload dos artifacts
+Upload dos artefatos
 ```
 
-São disponibilizados artifacts contendo os relatórios de execução.
+Ao final da execução, o GitHub Actions disponibiliza os seguintes artefatos para consulta e download:
+
+- `allure-report`;
+- `allure-results`;
+- `playwright-report`.
 
 ### GitLab CI/CD
 
@@ -364,7 +375,7 @@ npm test
 npm run allure:generate
 ```
 
-São armazenados como artifacts:
+A pipeline do GitLab também armazena os relatórios como artefatos:
 
 ```text
 reports/
@@ -372,7 +383,7 @@ allure-results/
 allure-report/
 ```
 
-O relatório JUnit também é integrado à pipeline do GitLab.
+O relatório JUnit também é integrado à pipeline do GitLab, permitindo visualizar os resultados dos testes diretamente na execução da pipeline.
 
 ---
 
@@ -397,7 +408,7 @@ Essa organização permite:
 - reduzir duplicação;
 - centralizar chamadas HTTP;
 - facilitar manutenção;
-- reutilizar dados e requests;
+- reutilizar dados e objetos de requisição;
 - separar regras de teste da camada de comunicação;
 - adicionar novos endpoints com menor impacto;
 - manter testes mais legíveis.
@@ -444,7 +455,9 @@ found 0 vulnerabilities
 
 ## 📌 Observação sobre cobertura
 
-A cobertura apresentada neste projeto representa **cobertura funcional dos endpoints e requisitos automatizados**.
+Para este desafio, a expressão **100% de cobertura** é tratada como cobertura funcional dos endpoints e requisitos descritos no enunciado.
+
+Todos os endpoints de usuários solicitados estão contemplados na suíte automatizada, juntamente com validações de campos obrigatórios, cenários negativos, autenticação, contrato e rate limit.
 
 Não é utilizado percentual de code coverage, pois o código-fonte interno da API ServeRest não faz parte deste repositório.
 
