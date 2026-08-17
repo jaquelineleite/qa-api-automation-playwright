@@ -5,7 +5,7 @@
 
 Projeto de automação de testes de API REST desenvolvido com **Playwright, TypeScript, AJV e Allure**, utilizando a API pública [ServeRest](https://serverest.dev/) como ambiente de testes.
 
-O projeto cobre operações CRUD de usuários, autenticação, validações negativas, contrato de API com JSON Schema, estrutura de token JWT, geração de dados dinâmicos e integração com pipelines CI/CD no GitHub Actions e GitLab CI.
+O projeto cobre operações CRUD de usuários, autenticação, validações negativas, contrato de API com JSON Schema, validação e utilização de token JWT, geração de dados dinâmicos e integração com pipelines CI/CD no GitHub Actions e GitLab CI.
 
 ---
 
@@ -18,6 +18,8 @@ Demonstrar uma estratégia de Quality Assurance aplicada a testes de API, contem
 - operações CRUD;
 - autenticação;
 - validação estrutural de JWT;
+- utilização do token JWT em requisição autenticada;
+- validação de acesso negado sem token;
 - validação de contrato com JSON Schema;
 - geração dinâmica de massa de dados;
 - validação de campos obrigatórios;
@@ -63,6 +65,7 @@ Demonstrar uma estratégia de Quality Assurance aplicada a testes de API, contem
 │   ├── tests/
 │   │   └── users/
 │   │       ├── create-user.spec.ts
+│   │       ├── jwt-auth.spec.ts
 │   │       ├── login.spec.ts
 │   │       ├── rate-limit.spec.ts
 │   │       ├── users-contract.spec.ts
@@ -110,7 +113,17 @@ São validados:
 - prefixo `Bearer`;
 - estrutura do token JWT composta por três partes.
 
-> A validação realizada é estrutural e não representa validação criptográfica da assinatura do JWT.
+> A validação da estrutura do token não representa validação criptográfica da assinatura do JWT.
+
+Além da validação estrutural, o projeto demonstra a **utilização real do token JWT**:
+
+- um usuário administrador é criado dinamicamente;
+- o login é realizado via `POST /login`;
+- o valor retornado em `authorization` é utilizado no header `Authorization`;
+- uma rota protegida é acessada com o token e retorna `HTTP 200`;
+- a mesma rota é acessada sem token e retorna `HTTP 401`.
+
+Para demonstrar o uso efetivo da autenticação foi utilizada uma rota protegida da ServeRest. O CRUD de `/usuarios` permanece testado conforme o comportamento real disponibilizado pela API pública.
 
 ---
 
@@ -193,8 +206,8 @@ npm run test:rate-limit
 Atualmente o projeto possui:
 
 ```text
-16 cenários cadastrados
-15 testes executados com sucesso
+18 cenários cadastrados
+17 testes executados com sucesso
 1 cenário opt-in de rate limit
 0 falhas
 ```
@@ -202,7 +215,7 @@ Atualmente o projeto possui:
 Execução validada:
 
 ```text
-15 passed
+17 passed
 1 skipped
 ```
 
