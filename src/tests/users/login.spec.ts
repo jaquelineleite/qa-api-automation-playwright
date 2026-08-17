@@ -27,7 +27,7 @@ test.describe('POST /login', () => {
   });
 
   test('deve realizar login e retornar token JWT', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Autenticação');
     await story('Login com sucesso');
     await severity('critical');
@@ -62,7 +62,7 @@ test.describe('POST /login', () => {
   });
 
   test('não deve realizar login com senha inválida', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Autenticação');
     await story('Login com senha inválida');
     await severity('normal');

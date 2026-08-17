@@ -7,7 +7,7 @@ export default async function globalSetup(): Promise<void> {
   fs.mkdirSync(allureResultsPath, { recursive: true });
 
   const environmentContent = [
-    'Projeto=Banco Carrefour API',
+    'Projeto=QA API Automation - Playwright & TypeScript',
     'Ambiente=QA',
     'Framework=Playwright',
     'Linguagem=TypeScript',

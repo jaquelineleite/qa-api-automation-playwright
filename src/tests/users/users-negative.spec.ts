@@ -24,7 +24,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('não deve criar usuário com e-mail duplicado', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Validação de e-mail duplicado');
     await severity('critical');
@@ -49,7 +49,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('não deve criar usuário sem nome', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Validação de nome obrigatório');
     await severity('normal');
@@ -72,7 +72,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('não deve criar usuário sem e-mail', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Validação de e-mail obrigatório');
     await severity('normal');
@@ -95,7 +95,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('não deve criar usuário sem password', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Validação de senha obrigatória');
     await severity('normal');
@@ -118,7 +118,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('não deve criar usuário sem administrador', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Validação de administrador obrigatório');
     await severity('normal');
@@ -141,7 +141,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('deve retornar erro ao buscar usuário inexistente', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Buscar usuário inexistente');
     await severity('normal');
@@ -158,7 +158,7 @@ test.describe('Cenários negativos de usuários', () => {
   });
 
   test('deve informar que nenhum registro foi excluído', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Excluir usuário inexistente');
     await severity('normal');

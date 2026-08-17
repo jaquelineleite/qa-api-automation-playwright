@@ -24,7 +24,7 @@ test.describe('CRUD de usuários', () => {
   });
 
   test('deve listar todos os usuários', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Listar usuários');
     await severity('normal');
@@ -39,7 +39,7 @@ test.describe('CRUD de usuários', () => {
   });
 
   test('deve buscar um usuário pelo ID', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Buscar usuário');
     await severity('critical');
@@ -63,7 +63,7 @@ test.describe('CRUD de usuários', () => {
   });
 
   test('deve atualizar um usuário', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Atualizar usuário');
     await severity('critical');
@@ -93,7 +93,7 @@ test.describe('CRUD de usuários', () => {
   });
 
   test('deve excluir um usuário', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Excluir usuário');
     await severity('critical');

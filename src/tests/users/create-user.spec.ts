@@ -24,7 +24,7 @@ test.describe('POST /usuarios', () => {
   });
 
   test('deve criar um usuário com sucesso', async () => {
-    await epic('Banco Carrefour API');
+    await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Criar usuário');
     await severity('critical');
