@@ -10,20 +10,7 @@ import {
   owner,
 } from 'allure-js-commons';
 
-
 test.describe('POST /usuarios', () => {
-    test('deve criar um usuário com sucesso', async () => {
-
-    await epic('Banco Carrefour API');
-    await feature('Usuários');
-    await story('Criar usuário');
-    await severity('critical');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const user = createValidUser();
-
-    // restante do teste...
-});
   let api: APIRequestContext;
   let usersRequest: UsersRequest;
 
@@ -36,5 +23,31 @@ test.describe('POST /usuarios', () => {
     await api.dispose();
   });
 
-   
+  test('deve criar um usuário com sucesso', async () => {
+    await epic('Banco Carrefour API');
+    await feature('Usuários');
+    await story('Criar usuário');
+    await severity('critical');
+    await owner('Jaqueline Fernandes de Andrade');
+
+    const user = createValidUser();
+
+    const response = await usersRequest.createUser(user);
+    const body = await response.json();
+
+    expect(response.status()).toBe(201);
+    expect(body.message).toBe('Cadastro realizado com sucesso');
+    expect(body._id).toBeTruthy();
+
+    const getResponse = await usersRequest.getUserById(body._id);
+    const createdUser = await getResponse.json();
+
+    expect(getResponse.status()).toBe(200);
+    expect(createdUser.nome).toBe(user.nome);
+    expect(createdUser.email).toBe(user.email);
+    expect(createdUser.password).toBe(user.password);
+    expect(createdUser.administrador).toBe(user.administrador);
+
+    await usersRequest.deleteUser(body._id);
   });
+});

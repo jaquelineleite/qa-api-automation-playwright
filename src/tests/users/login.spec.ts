@@ -52,6 +52,12 @@ test.describe('POST /login', () => {
     expect(loginBody.authorization).toBeTruthy();
     expect(loginBody.authorization).toContain('Bearer');
 
+      const token = loginBody.authorization.replace('Bearer ', '');
+      const tokenParts = token.split('.');
+
+      expect(tokenParts).toHaveLength(3);
+      expect(tokenParts.every((part: string) => part.length > 0)).toBeTruthy();
+
     await usersRequest.deleteUser(createdBody._id);
   });
 

@@ -117,6 +117,29 @@ test.describe('Cenários negativos de usuários', () => {
     expect(body).toHaveProperty('password');
   });
 
+  test('não deve criar usuário sem administrador', async () => {
+    await epic('Banco Carrefour API');
+    await feature('Usuários');
+    await story('Validação de administrador obrigatório');
+    await severity('normal');
+    await owner('Jaqueline Fernandes de Andrade');
+
+    const user = createValidUser();
+
+    const response = await api.post('/usuarios', {
+      data: {
+        nome: user.nome,
+        email: user.email,
+        password: user.password,
+      },
+    });
+
+    const body = await response.json();
+
+    expect(response.status()).toBe(400);
+    expect(body).toHaveProperty('administrador');
+  });
+
   test('deve retornar erro ao buscar usuário inexistente', async () => {
     await epic('Banco Carrefour API');
     await feature('Usuários');
