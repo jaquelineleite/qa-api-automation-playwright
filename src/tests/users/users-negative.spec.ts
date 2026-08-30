@@ -1,7 +1,9 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
-import { ApiClient } from '../../client/apiClient';
-import { createValidUser } from '../../data/user.data';
-import { UsersRequest } from '../../requests/users.request';
+import { test, expect } from '../../fixtures/user.fixture';
+import {
+  createValidUser,
+  UserData,
+} from '../../data/user.data';
+
 import {
   epic,
   feature,
@@ -10,167 +12,119 @@ import {
   owner,
 } from 'allure-js-commons';
 
+type RequiredFieldScenario = {
+  field: keyof UserData;
+  testName: string;
+  storyName: string;
+};
+
+const requiredFieldScenarios: RequiredFieldScenario[] = [
+  {
+    field: 'nome',
+    testName: 'não deve criar usuário sem nome',
+    storyName: 'Validação de nome obrigatório',
+  },
+  {
+    field: 'email',
+    testName: 'não deve criar usuário sem e-mail',
+    storyName: 'Validação de e-mail obrigatório',
+  },
+  {
+    field: 'password',
+    testName: 'não deve criar usuário sem password',
+    storyName: 'Validação de senha obrigatória',
+  },
+  {
+    field: 'administrador',
+    testName: 'não deve criar usuário sem administrador',
+    storyName: 'Validação de administrador obrigatório',
+  },
+];
+
 test.describe('Cenários negativos de usuários', () => {
-  let api: APIRequestContext;
-  let usersRequest: UsersRequest;
+  test(
+    'não deve criar usuário com e-mail duplicado',
+    async ({ usersRequest, testUser }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Validação de e-mail duplicado');
+      await severity('critical');
+      await owner('Jaqueline Fernandes de Andrade');
 
-  test.beforeAll(async () => {
-    api = await ApiClient.create();
-    usersRequest = new UsersRequest(api);
-  });
+      const duplicateResponse = await usersRequest.createUser(
+        testUser.data
+      );
 
-  test.afterAll(async () => {
-    await api.dispose();
-  });
+      const duplicateBody = await duplicateResponse.json();
 
-  test('não deve criar usuário com e-mail duplicado', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Validação de e-mail duplicado');
-    await severity('critical');
-    await owner('Jaqueline Fernandes de Andrade');
+      expect(duplicateResponse.status()).toBe(400);
+      expect(duplicateBody.message).toBe(
+        'Este email já está sendo usado'
+      );
+    }
+  );
 
-    const user = createValidUser();
+  for (const scenario of requiredFieldScenarios) {
+    test(scenario.testName, async ({ usersRequest }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story(scenario.storyName);
+      await severity('normal');
+      await owner('Jaqueline Fernandes de Andrade');
 
-    const firstResponse = await usersRequest.createUser(user);
-    const firstBody = await firstResponse.json();
+      const payload: Partial<UserData> = {
+        ...createValidUser(),
+      };
 
-    expect(firstResponse.status()).toBe(201);
+      delete payload[scenario.field];
 
-    const duplicateResponse = await usersRequest.createUser(user);
-    const duplicateBody = await duplicateResponse.json();
+      const response =
+        await usersRequest.createUserWithPayload(payload);
 
-    expect(duplicateResponse.status()).toBe(400);
-    expect(duplicateBody.message).toBe(
-      'Este email já está sendo usado'
-    );
+      const body = await response.json();
 
-    await usersRequest.deleteUser(firstBody._id);
-  });
-
-  test('não deve criar usuário sem nome', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Validação de nome obrigatório');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const user = createValidUser();
-
-    const response = await api.post('/usuarios', {
-      data: {
-        email: user.email,
-        password: user.password,
-        administrador: user.administrador,
-      },
+      expect(response.status()).toBe(400);
+      expect(body).toHaveProperty(scenario.field);
     });
+  }
 
-    const body = await response.json();
+  test(
+    'deve retornar erro ao buscar usuário inexistente',
+    async ({ usersRequest }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Buscar usuário inexistente');
+      await severity('normal');
+      await owner('Jaqueline Fernandes de Andrade');
 
-    expect(response.status()).toBe(400);
-    expect(body).toHaveProperty('nome');
-  });
+      const response = await usersRequest.getUserById(
+        '0000000000000000'
+      );
 
-  test('não deve criar usuário sem e-mail', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Validação de e-mail obrigatório');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
+      const body = await response.json();
 
-    const user = createValidUser();
+      expect(response.status()).toBe(400);
+      expect(body.message).toBe('Usuário não encontrado');
+    }
+  );
 
-    const response = await api.post('/usuarios', {
-      data: {
-        nome: user.nome,
-        password: user.password,
-        administrador: user.administrador,
-      },
-    });
+  test(
+    'deve informar que nenhum registro foi excluído',
+    async ({ usersRequest }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Excluir usuário inexistente');
+      await severity('normal');
+      await owner('Jaqueline Fernandes de Andrade');
 
-    const body = await response.json();
+      const response = await usersRequest.deleteUser(
+        '0000000000000000'
+      );
 
-    expect(response.status()).toBe(400);
-    expect(body).toHaveProperty('email');
-  });
+      const body = await response.json();
 
-  test('não deve criar usuário sem password', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Validação de senha obrigatória');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const user = createValidUser();
-
-    const response = await api.post('/usuarios', {
-      data: {
-        nome: user.nome,
-        email: user.email,
-        administrador: user.administrador,
-      },
-    });
-
-    const body = await response.json();
-
-    expect(response.status()).toBe(400);
-    expect(body).toHaveProperty('password');
-  });
-
-  test('não deve criar usuário sem administrador', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Validação de administrador obrigatório');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const user = createValidUser();
-
-    const response = await api.post('/usuarios', {
-      data: {
-        nome: user.nome,
-        email: user.email,
-        password: user.password,
-      },
-    });
-
-    const body = await response.json();
-
-    expect(response.status()).toBe(400);
-    expect(body).toHaveProperty('administrador');
-  });
-
-  test('deve retornar erro ao buscar usuário inexistente', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Buscar usuário inexistente');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const response = await usersRequest.getUserById(
-      '0000000000000000'
-    );
-
-    const body = await response.json();
-
-    expect(response.status()).toBe(400);
-    expect(body.message).toBe('Usuário não encontrado');
-  });
-
-  test('deve informar que nenhum registro foi excluído', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Excluir usuário inexistente');
-    await severity('normal');
-    await owner('Jaqueline Fernandes de Andrade');
-
-    const response = await usersRequest.deleteUser(
-      '0000000000000000'
-    );
-
-    const body = await response.json();
-
-    expect(response.status()).toBe(200);
-    expect(body.message).toBe('Nenhum registro excluído');
-  });
+      expect(response.status()).toBe(200);
+      expect(body.message).toBe('Nenhum registro excluído');
+    }
+  );
 });

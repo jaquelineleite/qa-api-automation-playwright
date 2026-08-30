@@ -18,6 +18,14 @@ export class UsersRequest {
     return this.api.get(`/usuarios/${userId}`);
   }
 
+  async createUserWithPayload(
+  payload: Partial<UserData>,
+  ): Promise<APIResponse> {
+  return this.api.post('/usuarios', {
+    data: payload,
+  });
+  }
+
   async updateUser(
     userId: string,
     user: UserData,
