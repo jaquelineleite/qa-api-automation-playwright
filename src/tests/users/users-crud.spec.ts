@@ -108,26 +108,32 @@ test.describe('CRUD de usuários', () => {
   });
 
   test('deve excluir um usuário', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Excluir usuário');
-    await severity('critical');
-    await owner('Jaqueline Fernandes de Andrade');
+  await epic('QA API Automation - Playwright & TypeScript');
+  await feature('Usuários');
+  await story('Excluir usuário');
+  await severity('critical');
+  await owner('Jaqueline Fernandes de Andrade');
 
-    const user = createValidUser();
+  // Arrange — garante que a pré-condição foi criada corretamente
+  const user = createValidUser();
+  const createResponse = await usersRequest.createUser(user);
 
-    const createResponse = await usersRequest.createUser(user);
-    const createdBody = await createResponse.json();
-    const userId = createdBody._id;
+  expect(createResponse.status()).toBe(201);
 
-    const response = await usersRequest.deleteUser(userId);
-    const body = await response.json();
+  const createdBody = await createResponse.json();
+  const userId = createdBody._id;
 
-    expect(response.status()).toBe(200);
-    expect(body.message).toBe('Registro excluído com sucesso');
+  // Act — executa a exclusão
+  const response = await usersRequest.deleteUser(userId);
+  const body = await response.json();
 
-    const getResponse = await usersRequest.getUserById(userId);
+  // Assert — valida o resultado imediato da operação
+  expect(response.status()).toBe(200);
+  expect(body.message).toBe('Registro excluído com sucesso');
 
-    expect(getResponse.status()).toBe(400);
-  });
+  // Post-condition — comprova que o recurso realmente não existe mais
+  const getResponse = await usersRequest.getUserById(userId);
+
+  expect(getResponse.status()).toBe(400);
+});
 });
