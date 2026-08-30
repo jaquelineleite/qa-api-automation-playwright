@@ -1,51 +1,156 @@
-# 🚀 QA API Automation — Playwright & TypeScript
+# 🧪 API Quality Engineering — Playwright & TypeScript
 
 [![API Tests](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml/badge.svg)](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml)
+
 [![GitLab Pipeline](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/badges/main/pipeline.svg)](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/-/pipelines)
 
-Projeto de automação de testes de API REST desenvolvido como solução para um desafio técnico de **Quality Assurance**, utilizando **Playwright, TypeScript, AJV, Faker e Allure**, com a API pública [ServeRest](https://serverest.dev/) como ambiente de testes.
+Projeto de **Quality Engineering aplicado a APIs REST**, utilizando Playwright e TypeScript para transformar riscos de qualidade em verificações automatizadas, rastreáveis e executáveis em CI/CD.
 
-O projeto cobre operações CRUD de usuários, autenticação, validações negativas, contrato de API com JSON Schema, validação e utilização de token JWT, geração de dados dinâmicos e integração com pipelines CI/CD no GitHub Actions e GitLab CI.
+Mais do que automatizar endpoints, o projeto demonstra decisões relacionadas a:
 
-> **Mapeamento do desafio:** o enunciado utiliza os endpoints `/users`, enquanto a ServeRest disponibiliza o recurso equivalente em `/usuarios`. Por isso, os testes utilizam `/usuarios` e `/usuarios/{id}`.
+- estratégia de testes baseada em risco;
+- escolha da camada adequada de validação;
+- autenticação e autorização;
+- testes funcionais e negativos;
+- validação de contrato;
+- gerenciamento do ciclo de vida da massa de testes;
+- quality gates;
+- rastreabilidade entre risco e automação;
+- análise e classificação de falhas;
+- execução contínua em pipelines.
 
----
+A API pública [ServeRest](https://serverest.dev/) é utilizada como sistema sob teste.
 
-## 🎯 Objetivo
-
-Garantir cobertura funcional dos endpoints e requisitos descritos no desafio por meio de testes automatizados de API, contemplando:
-
-- testes funcionais positivos;
-- testes negativos;
-- operações CRUD;
-- autenticação;
-- validação estrutural de JWT;
-- utilização do token JWT em requisição autenticada;
-- validação de acesso negado sem token;
-- validação de contrato com JSON Schema;
-- geração dinâmica de massa de dados;
-- validação de campos obrigatórios;
-- rate limit configurado como teste opt-in;
-- relatórios automatizados;
-- execução em pipelines CI/CD.
-
-
----
-## 🛠️ Tecnologias
-
-- **Playwright**
-- **TypeScript**
-- **Node.js**
-- **AJV**
-- **Faker**
-- **Allure Report**
-- **JUnit**
-- **GitHub Actions**
-- **GitLab CI/CD**
+> O objetivo não é maximizar a quantidade de testes, mas produzir um sinal de qualidade confiável sobre os riscos selecionados.
 
 ---
 
-## 📂 Estrutura do projeto
+# 🎯 Quality Engineering Approach
+
+A estratégia segue o fluxo:
+
+```text
+Requirement / Change
+        ↓
+Risk Analysis
+        ↓
+Test Strategy
+        ↓
+Escolha da camada
+        ↓
+Automação
+        ↓
+Execution Evidence
+        ↓
+Failure Analysis
+        ↓
+Quality Gate
+```
+
+Cada cenário deve responder três perguntas:
+
+1. **Qual risco estou cobrindo?**
+2. **Por que essa é a camada adequada para validá-lo?**
+3. **Qual evidência determina se o comportamento está saudável?**
+
+A automação é tratada como consequência da estratégia de qualidade, e não como objetivo isolado.
+
+---
+
+# 🧭 Documentação de Engenharia
+
+A arquitetura e as decisões do projeto estão documentadas em:
+
+| Documento | Objetivo |
+|---|---|
+| [Quality Strategy](docs/quality-strategy.md) | Princípios, estratégia baseada em risco, quality gates e classificação de falhas |
+| [Risk Matrix](docs/risk-matrix.md) | Riscos, impacto, probabilidade, prioridade e estratégia de mitigação |
+| [Test Architecture](docs/test-architecture.md) | Critérios utilizados para selecionar a camada de teste |
+| [Traceability Matrix](docs/traceability-matrix.md) | Relação entre risco, cenário automatizado, criticidade e quality gate |
+
+---
+
+# ⚠️ Risk-Based Testing
+
+Os testes são priorizados de acordo com impacto e risco.
+
+Exemplos:
+
+| Área | Risco | Prioridade | Estratégia |
+|---|---|---:|---|
+| Autenticação | Usuário válido não conseguir autenticar | Crítica | Login positivo |
+| Autenticação | Credenciais inválidas concederem acesso | Crítica | Teste negativo |
+| Autorização | Endpoint protegido aceitar acesso sem JWT | Crítica | Chamada sem token |
+| Usuários | Criação retornar sucesso sem estado válido | Alta | POST + validação posterior |
+| Usuários | Atualização não persistir | Alta | PUT + GET |
+| Usuários | Exclusão não remover recurso | Alta | DELETE + GET |
+| Contrato | Mudança estrutural quebrar consumidores | Alta | JSON Schema + AJV |
+| Massa | Dados compartilhados gerarem falsos resultados | Alta | Faker + fixtures |
+| Rate Limit | Excesso de requisições não ser controlado | Média | Teste opt-in |
+
+A matriz completa está em:
+
+[`docs/risk-matrix.md`](docs/risk-matrix.md)
+
+---
+
+# 🏗️ Arquitetura de Testes
+
+```text
+                    QUALITY STRATEGY
+                           |
+                           v
+                     RISK ANALYSIS
+                           |
+              +------------+------------+
+              |            |            |
+              v            v            v
+         Functional     Contract   Non-functional
+              |            |            |
+              v            v            v
+          API Tests    JSON Schema   Rate Limit
+              |
+              v
+        Test Evidence
+              |
+              v
+       Failure Analysis
+              |
+              v
+         Quality Gate
+```
+
+Este repositório valida diretamente a camada de serviços REST.
+
+Não é utilizada UI para comportamentos que podem ser comprovados de maneira mais rápida, isolada e confiável pela API.
+
+Exemplo:
+
+```text
+Regra de API
+     ↓
+Teste de API
+```
+
+em vez de:
+
+```text
+Regra de API
+     ↓
+UI
+     ↓
+Browser
+     ↓
+Frontend
+     ↓
+API
+```
+
+A escolha da camada é baseada no risco que precisa ser validado.
+
+---
+
+# 📂 Arquitetura do Framework
 
 ```text
 .
@@ -53,16 +158,29 @@ Garantir cobertura funcional dos endpoints e requisitos descritos no desafio por
 │   └── workflows/
 │       └── api-tests.yml
 │
+├── docs/
+│   ├── quality-strategy.md
+│   ├── risk-matrix.md
+│   ├── test-architecture.md
+│   └── traceability-matrix.md
+│
 ├── src/
 │   ├── client/
 │   │   └── apiClient.ts
+│   │
 │   ├── data/
 │   │   └── user.data.ts
+│   │
+│   ├── fixtures/
+│   │   └── user.fixture.ts
+│   │
 │   ├── requests/
 │   │   ├── auth.request.ts
 │   │   └── users.request.ts
+│   │
 │   ├── schemas/
 │   │   └── users.schema.ts
+│   │
 │   ├── tests/
 │   │   └── users/
 │   │       ├── create-user.spec.ts
@@ -72,97 +190,201 @@ Garantir cobertura funcional dos endpoints e requisitos descritos no desafio por
 │   │       ├── users-contract.spec.ts
 │   │       ├── users-crud.spec.ts
 │   │       └── users-negative.spec.ts
+│   │
 │   └── utils/
 │       └── allure-environment.ts
 │
 ├── .gitlab-ci.yml
 ├── playwright.config.ts
 ├── package.json
+├── tsconfig.json
 └── README.md
-
-
 ```
 
----
-## ✅ Cobertura funcional
+A separação de responsabilidades segue:
 
-| Operação | Endpoint do desafio | Endpoint utilizado | Método |
-|---|---|---|---|
-| Criar usuário | `/users` | `/usuarios` | POST |
-| Listar usuários | `/users` | `/usuarios` | GET |
-| Buscar usuário por ID | `/users/{id}` | `/usuarios/{id}` | GET |
-| Atualizar usuário | `/users/{id}` | `/usuarios/{id}` | PUT |
-| Excluir usuário | `/users/{id}` | `/usuarios/{id}` | DELETE |
-
-Além do CRUD, a suíte cobre cenários positivos, negativos, autenticação JWT, contrato da API e rate limit.
-
----
-
-## 🔐 Autenticação JWT
-
-O projeto possui testes para o endpoint:
-
-`POST /login`
-
-São validados:
-
-- login com credenciais válidas;
-- login com senha inválida;
-- status HTTP;
-- mensagem retornada pela API;
-- presença do campo `authorization`;
-- prefixo `Bearer`;
-- estrutura do token JWT composta por três partes.
-
-> A validação da estrutura do token não representa validação criptográfica da assinatura do JWT.
-
-Além da validação estrutural, o projeto demonstra a **utilização real do token JWT** em uma rota protegida da ServeRest (`DELETE /carrinhos/concluir-compra`):
-
-- um usuário administrador é criado dinamicamente;
-- o login é realizado via `POST /login`;
-- o valor retornado em `authorization` é utilizado no header `Authorization`;
-- uma rota protegida é acessada com o token e retorna `HTTP 200`;
-- a mesma rota é acessada sem token e retorna `HTTP 401`.
-
-O CRUD de `/usuarios` permanece testado separadamente, conforme o comportamento disponibilizado pela API pública ServeRest.
-
----
-
-## 🧪 Campos obrigatórios e cenários negativos
-
-O payload de usuário utiliza os campos:
-
-```json
-{
-  "nome": "string",
-  "email": "string",
-  "password": "string",
-  "administrador": "string"
-}
+```text
+Client
+  ↓
+Requests
+  ↓
+Fixtures / Test Data
+  ↓
+Schemas
+  ↓
+Tests
 ```
 
-São validados os seguintes cenários negativos:
+Essa estrutura permite:
 
-- ausência de `nome`;
-- ausência de `email`;
-- ausência de `password`;
-- ausência de `administrador`;
-- e-mail duplicado.
+- centralizar comunicação HTTP;
+- reduzir duplicação;
+- isolar gerenciamento de massa;
+- facilitar manutenção;
+- aumentar legibilidade;
+- reutilizar componentes;
+- reduzir acoplamento entre cenários.
 
-Também são validados cenários envolvendo:
+---
 
-- consulta de usuário inexistente;
+# 🧹 Test Data Lifecycle
+
+A massa de testes é criada dinamicamente utilizando Faker.
+
+Os cenários CRUD utilizam fixture responsável pelo ciclo de vida do usuário:
+
+```text
+Fixture
+   ↓
+Create User
+   ↓
+Provide ID + Test Data
+   ↓
+Test Execution
+   ↓
+Check Resource State
+   ↓
+Cleanup
+```
+
+O cleanup é tratado de forma idempotente.
+
+Se o próprio cenário remover o usuário, a fixture reconhece que o recurso já não existe.
+
+Se o usuário continuar disponível após o teste, a fixture realiza a limpeza.
+
+Isso reduz:
+
+- dependência de massa fixa;
+- dados abandonados;
+- conflitos entre execuções;
+- dependência da ordem dos testes;
+- falsos negativos.
+
+---
+
+# ✅ Validação de Estado
+
+Os testes não dependem apenas do status retornado pela operação.
+
+## Update
+
+```text
+PUT /usuarios/{id}
+        ↓
+HTTP 200
+        ↓
+GET /usuarios/{id}
+        ↓
+validar novo estado persistido
+```
+
+## Delete
+
+```text
+DELETE /usuarios/{id}
+        ↓
+HTTP 200
+        ↓
+GET /usuarios/{id}
+        ↓
+usuário não encontrado
+```
+
+Isso permite validar a **pós-condição**, e não somente a resposta imediata da requisição.
+
+---
+
+# 🧪 Data-Driven Negative Testing
+
+As validações de campos obrigatórios utilizam abordagem parametrizada.
+
+São testadas individualmente as ausências de:
+
+```text
+nome
+email
+password
+administrador
+```
+
+A estrutura compartilhada reduz duplicação sem eliminar a rastreabilidade.
+
+Cada variação continua aparecendo como cenário independente nos relatórios.
+
+Também são testados:
+
+- e-mail duplicado;
+- usuário inexistente;
 - exclusão de usuário inexistente.
 
 ---
 
-## 📐 Validação de contrato com AJV
+# 🔐 Autenticação e Autorização
 
-O projeto utiliza **AJV** e **JSON Schema** para validar o contrato da resposta do endpoint:
+Autenticação e autorização são tratadas como riscos diferentes.
 
-`GET /usuarios`
+## Autenticação
 
-Estrutura esperada:
+```text
+email + senha
+     ↓
+POST /login
+     ↓
+JWT
+```
+
+São validados:
+
+- credenciais válidas;
+- senha inválida;
+- status HTTP;
+- mensagem;
+- campo `authorization`;
+- prefixo `Bearer`;
+- estrutura JWT em três partes.
+
+> A validação estrutural não representa validação criptográfica da assinatura JWT.
+
+## Autorização
+
+O token obtido é utilizado em uma rota protegida:
+
+```text
+POST /login
+     ↓
+JWT
+     ↓
+Authorization Header
+     ↓
+Protected Endpoint
+     ↓
+HTTP 200
+```
+
+O mesmo recurso é acessado sem token:
+
+```text
+No JWT
+  ↓
+Protected Endpoint
+  ↓
+HTTP 401
+```
+
+Portanto, a simples geração do token não é utilizada como evidência suficiente de autorização.
+
+---
+
+# 📐 Contract Testing
+
+O projeto utiliza **AJV + JSON Schema** para validar a estrutura retornada por:
+
+```text
+GET /usuarios
+```
+
+São verificados elementos como:
 
 ```text
 quantidade
@@ -174,25 +396,39 @@ usuarios[]
   └── _id
 ```
 
-Essa validação permite detectar alterações inesperadas na estrutura da resposta, ausência de propriedades esperadas e mudanças de tipo nos dados retornados pela API.
+Essa camada busca detectar:
+
+- propriedades removidas;
+- propriedades esperadas ausentes;
+- alterações de tipo;
+- mudanças estruturais que possam afetar consumidores.
 
 ---
 
-## 🚦 Rate Limit
+# 🚦 Rate Limit como Teste Opt-in
 
-Existe um cenário específico para validar a regra de:
+Existe um cenário para:
 
-`100 requisições por minuto`
+```text
+100 requisições por minuto
+```
 
-O teste envia até 101 requisições e espera que a requisição acima do limite retorne:
+A requisição acima do limite deve retornar:
 
-`HTTP 429`
+```text
+HTTP 429
+```
 
-O cenário de rate limit está **implementado**, porém sua execução é **opt-in** e não faz parte da suíte padrão executada contra a API pública ServeRest.
+Esse teste **não faz parte da regressão padrão**.
 
-Essa decisão evita gerar carga desnecessária no ambiente público e também evita tratar como falha uma política que pode não estar habilitada da mesma forma no ambiente utilizado.
+A decisão é intencional porque:
 
-Para executá-lo em um ambiente que implemente essa regra:
+- a aplicação utilizada é uma API pública;
+- o teste gera volume elevado de requisições;
+- a política pode variar conforme o ambiente;
+- uma configuração ausente não deve produzir um falso quality gate funcional.
+
+Execução:
 
 ```bash
 RUN_RATE_LIMIT_TEST=true \
@@ -202,14 +438,94 @@ npm run test:rate-limit
 
 ---
 
-## 📊 Suíte automatizada
+# 🚥 Quality Gates
 
-Atualmente o projeto possui:
+Uma execução da regressão obrigatória não deve ser considerada saudável sem investigação quando houver falha em:
+
+- autenticação;
+- autorização;
+- CRUD crítico;
+- campos obrigatórios;
+- duplicidade;
+- contrato;
+- TypeScript;
+- regressão automatizada obrigatória.
+
+O fluxo esperado é:
+
+```text
+Test Failed
+    ↓
+Reproduz?
+  /       \
+não       sim
+ ↓         ↓
+Test /    Viola requisito
+Data /     ou contrato?
+Env          |
+             ↓
+        Product Defect
+```
+
+Categorias consideradas:
+
+- Product Defect
+- Test Defect
+- Data Issue
+- Environment Issue
+- Contract Change
+
+Uma falha automatizada não é classificada automaticamente como defeito de produto.
+
+---
+
+# 🔎 Traceability
+
+A rastreabilidade conecta:
+
+```text
+Risk
+  ↓
+Scenario
+  ↓
+Automated Test
+  ↓
+Severity
+  ↓
+Quality Gate
+```
+
+Exemplo:
+
+```text
+R06
+Atualização não persistir
+        ↓
+users-crud.spec.ts
+        ↓
+PUT
+        ↓
+GET posterior
+        ↓
+Critical
+        ↓
+Block
+```
+
+Matriz completa:
+
+[`docs/traceability-matrix.md`](docs/traceability-matrix.md)
+
+---
+
+# 📊 Suíte Automatizada
+
+Baseline atual:
 
 ```text
 18 cenários cadastrados
-17 testes executados com sucesso
-1 cenário opt-in de rate limit
+17 testes executados
+1 cenário opt-in
 0 falhas
 ```
 
@@ -220,20 +536,35 @@ Execução validada:
 1 skipped
 ```
 
-O cenário marcado como `skipped` corresponde exclusivamente ao teste de rate limit opt-in.
+O cenário `skipped` corresponde ao teste de rate limit opt-in.
 
 ---
 
-## 🚀 Instalação
+# 🛠️ Stack
 
-### Pré-requisitos
+| Área | Tecnologia |
+|---|---|
+| Test Automation | Playwright |
+| Linguagem | TypeScript |
+| Runtime | Node.js |
+| Contract Testing | JSON Schema + AJV |
+| Test Data | Faker |
+| Reporting | Playwright HTML, Allure, JUnit |
+| CI/CD | GitHub Actions, GitLab CI |
+| Versionamento | Git |
+
+---
+
+# 🚀 Instalação
+
+## Pré-requisitos
 
 - Node.js 20+
 - npm
 - Git
-- Java/JDK para geração local do relatório Allure
+- Java/JDK para geração local do Allure
 
-Clone o projeto:
+Clone:
 
 ```bash
 git clone https://github.com/jaquelineleite/qa-api-automation-playwright.git
@@ -245,7 +576,7 @@ Entre no diretório:
 cd qa-api-automation-playwright
 ```
 
-Instale as dependências:
+Instale:
 
 ```bash
 npm ci
@@ -253,45 +584,27 @@ npm ci
 
 ---
 
-## ▶️ Executando os testes
+# ▶️ Execução
 
-### Suíte completa
+## Regressão
 
 ```bash
 npm test
 ```
 
-### Testes de usuários
+## Usuários
 
 ```bash
 npm run test:users
 ```
 
-### Testes de autenticação e JWT
-
-Executa os cenários de login e utilização do token JWT:
+## Autenticação
 
 ```bash
 npm run test:auth
 ```
 
-### Rate limit
-
-O teste de rate limit é opt-in. Para executá-lo, informe um ambiente que implemente a regra de 100 requisições por minuto:
-
-```bash
-RUN_RATE_LIMIT_TEST=true \
-RATE_LIMIT_BASE_URL=https://seu-ambiente.com \
-npm run test:rate-limit
-```
-
-> Sem `RUN_RATE_LIMIT_TEST=true`, o cenário permanece marcado como `skipped` por decisão de projeto.
-
----
-
-## 🔎 Validação TypeScript
-
-Para verificar erros de tipagem sem executar os testes:
+## TypeScript
 
 ```bash
 npm run typecheck
@@ -299,71 +612,62 @@ npm run typecheck
 
 ---
 
-## 📈 Relatórios
+# 📈 Reporting
 
-O projeto possui relatórios nos formatos Playwright HTML, Allure e JUnit.
+O projeto produz:
 
-### Playwright HTML Report
+- Playwright HTML Report;
+- Allure Report;
+- JUnit.
 
-```bash
-npm run test:report
-```
-
-ou:
+Playwright:
 
 ```bash
 npx playwright show-report reports/playwright-report
 ```
 
-### Allure Report
+Allure:
 
 ```bash
 npm run allure:generate
-```
-
-```bash
 npm run allure:open
 ```
 
-### JUnit
+JUnit:
 
-O relatório JUnit é gerado em:
-
-`reports/junit/results.xml`
+```text
+reports/junit/results.xml
+```
 
 ---
 
-## 🔄 CI/CD
+# 🔄 CI/CD
 
-### GitHub Actions
-
-O workflow executa automaticamente:
+## GitHub Actions
 
 ```text
 Checkout
    ↓
-Setup Node.js
+Setup Node
    ↓
 npm ci
    ↓
 TypeScript Check
    ↓
-Testes de API
+API Tests
    ↓
-Geração de relatório Allure
+Allure
    ↓
-Upload dos artefatos
+Artifacts
 ```
 
-Ao final da execução, o GitHub Actions disponibiliza os seguintes artefatos para consulta e download:
+São disponibilizados:
 
 - `allure-report`;
 - `allure-results`;
 - `playwright-report`.
 
-### GitLab CI/CD
-
-A pipeline executa:
+## GitLab CI
 
 ```text
 npm ci
@@ -375,99 +679,52 @@ npm test
 npm run allure:generate
 ```
 
-A pipeline do GitLab também armazena os relatórios como artefatos:
-
-```text
-reports/
-allure-results/
-allure-report/
-```
-
-O relatório JUnit também é integrado à pipeline do GitLab, permitindo visualizar os resultados dos testes diretamente na execução da pipeline.
+Relatórios são armazenados como artefatos da pipeline.
 
 ---
 
-## 🧩 Estratégia utilizada
+# 🔒 Limites da Cobertura
 
-O projeto separa responsabilidades entre:
+Este projeto **não afirma cobertura total de qualidade do sistema**.
 
-```text
-Client
-   ↓
-Requests
-   ↓
-Data
-   ↓
-Schemas
-   ↓
-Tests
-```
+A cobertura atual não representa:
 
-Essa organização permite:
+- code coverage do backend;
+- pentest;
+- OWASP API Security completo;
+- validação criptográfica JWT;
+- performance completa;
+- stress;
+- endurance;
+- observabilidade interna;
+- banco de dados interno;
+- infraestrutura da ServeRest.
 
-- reduzir duplicação;
-- centralizar chamadas HTTP;
-- facilitar manutenção;
-- reutilizar dados e objetos de requisição;
-- separar regras de teste da camada de comunicação;
-- adicionar novos endpoints com menor impacto;
-- manter testes mais legíveis.
+Esses itens exigiriam escopo e níveis de acesso diferentes.
+
+Essa distinção faz parte da estratégia de qualidade: **automatizar um cenário não significa declarar cobertura sobre uma área inteira.**
 
 ---
 
-## 🧹 Massa de dados
+# 🔭 Evoluções Planejadas
 
-Os dados utilizados nos testes são criados dinamicamente com **Faker**, reduzindo conflitos entre execuções.
+Próximas possibilidades de evolução:
 
-Nos cenários que criam dados exclusivamente para teste, os usuários são removidos ao final quando aplicável.
-
----
-
-## 🏷️ Allure
-
-Os testes possuem metadados como:
-
-- Epic;
-- Feature;
-- Story;
-- Severity;
-- Owner.
-
-Isso permite organizar os cenários no relatório por funcionalidade e criticidade.
+- classificação formal entre smoke e regression;
+- métricas de estabilidade;
+- estratégia de flaky tests;
+- expansão de contract testing;
+- observabilidade;
+- análise automatizada de falhas;
+- AI Quality Engineering;
+- integração futura com agentes e MCP.
 
 ---
 
-## 🔒 Segurança das dependências
-
-As dependências do projeto foram verificadas com:
-
-```bash
-npm audit
-```
-
-Resultado da última validação local:
-
-```text
-found 0 vulnerabilities
-```
-
----
-
-## 📌 Observação sobre cobertura
-
-Para este desafio, a expressão **100% de cobertura** é tratada como cobertura funcional dos endpoints e requisitos descritos no enunciado.
-
-Todos os endpoints de usuários solicitados estão contemplados na suíte automatizada, juntamente com validações de campos obrigatórios, cenários negativos, autenticação, contrato e rate limit.
-
-Não é utilizado percentual de code coverage, pois o código-fonte interno da API ServeRest não faz parte deste repositório.
-
----
-
-## 👩‍💻 Autora
+# 👩‍💻 Autora
 
 **Jaqueline Fernandes de Andrade**
 
-QA | Quality Assurance | Test Automation
+Quality Assurance | Quality Engineering | Test Automation
 
 GitHub: https://github.com/jaquelineleite
-
