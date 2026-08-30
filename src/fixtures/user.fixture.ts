@@ -48,7 +48,18 @@ export const test = base.extend<UserFixtures>({
         data,
       });
     } finally {
-      await usersRequest.deleteUser(id);
+      try {
+        const getResponse = await usersRequest.getUserById(id);
+
+        if (getResponse.status() === 200) {
+          await usersRequest.deleteUser(id);
+        }
+      } catch (error) {
+        console.warn(
+          `[cleanup] Não foi possível validar/remover o usuário de teste ${id}`,
+          error
+        );
+      }
     }
   },
 });
