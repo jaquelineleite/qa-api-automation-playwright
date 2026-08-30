@@ -1,7 +1,5 @@
-import { test, expect, APIRequestContext } from '@playwright/test';
-import { ApiClient } from '../../client/apiClient';
+import { test, expect } from '../../fixtures/user.fixture';
 import { createValidUser } from '../../data/user.data';
-import { UsersRequest } from '../../requests/users.request';
 import {
   epic,
   feature,
@@ -11,19 +9,7 @@ import {
 } from 'allure-js-commons';
 
 test.describe('CRUD de usuários', () => {
-  let api: APIRequestContext;
-  let usersRequest: UsersRequest;
-
-  test.beforeAll(async () => {
-    api = await ApiClient.create();
-    usersRequest = new UsersRequest(api);
-  });
-
-  test.afterAll(async () => {
-    await api.dispose();
-  });
-
-  test('deve listar todos os usuários', async () => {
+  test('deve listar todos os usuários', async ({ usersRequest }) => {
     await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Listar usuários');
@@ -38,102 +24,77 @@ test.describe('CRUD de usuários', () => {
     expect(Array.isArray(body.usuarios)).toBeTruthy();
   });
 
- test('deve buscar um usuário pelo ID', async () => {
-  await epic('QA API Automation - Playwright & TypeScript');
-  await feature('Usuários');
-  await story('Buscar usuário');
-  await severity('critical');
-  await owner('Jaqueline Fernandes de Andrade');
+  test(
+    'deve buscar um usuário pelo ID',
+    async ({ usersRequest, testUser }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Buscar usuário');
+      await severity('critical');
+      await owner('Jaqueline Fernandes de Andrade');
 
-  const user = createValidUser();
-  const createResponse = await usersRequest.createUser(user);
+      const response = await usersRequest.getUserById(testUser.id);
+      const body = await response.json();
 
-  expect(createResponse.status()).toBe(201);
-
-  const createdBody = await createResponse.json();
-  const userId = createdBody._id;
-
-  try {
-    const response = await usersRequest.getUserById(userId);
-    const body = await response.json();
-
-    expect(response.status()).toBe(200);
-    expect(body._id).toBe(userId);
-    expect(body.nome).toBe(user.nome);
-    expect(body.email).toBe(user.email);
-   } finally {
-    await usersRequest.deleteUser(userId);
+      expect(response.status()).toBe(200);
+      expect(body._id).toBe(testUser.id);
+      expect(body.nome).toBe(testUser.data.nome);
+      expect(body.email).toBe(testUser.data.email);
     }
-      });
+  );
 
-  test('deve atualizar um usuário', async () => {
-  await epic('QA API Automation - Playwright & TypeScript');
-  await feature('Usuários');
-  await story('Atualizar usuário');
-  await severity('critical');
-  await owner('Jaqueline Fernandes de Andrade');
+  test(
+    'deve atualizar um usuário',
+    async ({ usersRequest, testUser }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Atualizar usuário');
+      await severity('critical');
+      await owner('Jaqueline Fernandes de Andrade');
 
-  const originalUser = createValidUser();
+      const updatedUser = createValidUser();
 
-  const createResponse = await usersRequest.createUser(originalUser);
+      const response = await usersRequest.updateUser(
+        testUser.id,
+        updatedUser
+      );
 
-  expect(createResponse.status()).toBe(201);
+      const body = await response.json();
 
-  const createdBody = await createResponse.json();
-  const userId = createdBody._id;
+      expect(response.status()).toBe(200);
+      expect(body.message).toBe('Registro alterado com sucesso');
 
-  try {
-    const updatedUser = createValidUser();
+      // Post-condition:
+      // comprova que a alteração realmente foi persistida.
+      const getResponse = await usersRequest.getUserById(testUser.id);
+      const getBody = await getResponse.json();
 
-    const response = await usersRequest.updateUser(
-      userId,
-      updatedUser
-    );
+      expect(getResponse.status()).toBe(200);
+      expect(getBody.nome).toBe(updatedUser.nome);
+      expect(getBody.email).toBe(updatedUser.email);
+    }
+  );
 
-    const body = await response.json();
+  test(
+    'deve excluir um usuário',
+    async ({ usersRequest, testUser }) => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Usuários');
+      await story('Excluir usuário');
+      await severity('critical');
+      await owner('Jaqueline Fernandes de Andrade');
 
-    expect(response.status()).toBe(200);
-    expect(body.message).toBe('Registro alterado com sucesso');
+      const response = await usersRequest.deleteUser(testUser.id);
+      const body = await response.json();
 
-    const getResponse = await usersRequest.getUserById(userId);
-    const getBody = await getResponse.json();
+      expect(response.status()).toBe(200);
+      expect(body.message).toBe('Registro excluído com sucesso');
 
-    expect(getResponse.status()).toBe(200);
-    expect(getBody.nome).toBe(updatedUser.nome);
-    expect(getBody.email).toBe(updatedUser.email);
-  } finally {
-    await usersRequest.deleteUser(userId);
-  }
-  
-  });
+      // Post-condition:
+      // não confiamos apenas no HTTP 200 do DELETE.
+      const getResponse = await usersRequest.getUserById(testUser.id);
 
-  test('deve excluir um usuário', async () => {
-  await epic('QA API Automation - Playwright & TypeScript');
-  await feature('Usuários');
-  await story('Excluir usuário');
-  await severity('critical');
-  await owner('Jaqueline Fernandes de Andrade');
-
-  // Arrange — garante que a pré-condição foi criada corretamente
-  const user = createValidUser();
-  const createResponse = await usersRequest.createUser(user);
-
-  expect(createResponse.status()).toBe(201);
-
-  const createdBody = await createResponse.json();
-  const userId = createdBody._id;
-
-  // Act — executa a exclusão
-  const response = await usersRequest.deleteUser(userId);
-  const body = await response.json();
-
-  // Assert — valida o resultado imediato da operação
-  expect(response.status()).toBe(200);
-  expect(body.message).toBe('Registro excluído com sucesso');
-
-  // Post-condition — comprova que o recurso realmente não existe mais
-  const getResponse = await usersRequest.getUserById(userId);
-
-  expect(getResponse.status()).toBe(400);
-});
+      expect(getResponse.status()).toBe(400);
+    }
+  );
 });
