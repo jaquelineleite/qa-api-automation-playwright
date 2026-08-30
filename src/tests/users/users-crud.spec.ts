@@ -67,21 +67,29 @@ test.describe('CRUD de usuários', () => {
       });
 
   test('deve atualizar um usuário', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Usuários');
-    await story('Atualizar usuário');
-    await severity('critical');
-    await owner('Jaqueline Fernandes de Andrade');
+  await epic('QA API Automation - Playwright & TypeScript');
+  await feature('Usuários');
+  await story('Atualizar usuário');
+  await severity('critical');
+  await owner('Jaqueline Fernandes de Andrade');
 
-    const originalUser = createValidUser();
+  const originalUser = createValidUser();
 
-    const createResponse = await usersRequest.createUser(originalUser);
-    const createdBody = await createResponse.json();
-    const userId = createdBody._id;
+  const createResponse = await usersRequest.createUser(originalUser);
 
+  expect(createResponse.status()).toBe(201);
+
+  const createdBody = await createResponse.json();
+  const userId = createdBody._id;
+
+  try {
     const updatedUser = createValidUser();
 
-    const response = await usersRequest.updateUser(userId, updatedUser);
+    const response = await usersRequest.updateUser(
+      userId,
+      updatedUser
+    );
+
     const body = await response.json();
 
     expect(response.status()).toBe(200);
@@ -90,10 +98,13 @@ test.describe('CRUD de usuários', () => {
     const getResponse = await usersRequest.getUserById(userId);
     const getBody = await getResponse.json();
 
+    expect(getResponse.status()).toBe(200);
     expect(getBody.nome).toBe(updatedUser.nome);
     expect(getBody.email).toBe(updatedUser.email);
-
+  } finally {
     await usersRequest.deleteUser(userId);
+  }
+  
   });
 
   test('deve excluir um usuário', async () => {
