@@ -728,3 +728,5 @@ Próximas possibilidades de evolução:
 Quality Assurance | Quality Engineering | Test Automation
 
 GitHub: https://github.com/jaquelineleite
+
+<!-- quality gate validation -->
