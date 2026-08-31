@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Automação de testes de API REST com Playwright, TypeScript, AJV e Allure",
   "main": "index.js",
-  "scripts": {
+"scripts": {
   "test": "playwright test",
   "test:smoke": "playwright test --grep @smoke",
   "test:regression": "playwright test --grep-invert @non-functional",
+  "quality:metrics": "node scripts/generate-quality-metrics.mjs",
   "test:users": "playwright test src/tests/users",
   "test:auth": "playwright test src/tests/users/login.spec.ts src/tests/users/jwt-auth.spec.ts",
   "test:report": "playwright show-report reports/playwright-report",
