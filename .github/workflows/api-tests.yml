@@ -47,6 +47,35 @@ jobs:
         if: ${{ always() && steps.regression.outcome != 'skipped' }}
         run: npm run quality:metrics
 
+      - name: Publish Quality Summary
+        if: ${{ always() && steps.regression.outcome != 'skipped' }}
+        shell: bash
+        run: |
+          if [ "${{ steps.regression.outcome }}" = "success" ]; then
+            REGRESSION_STATUS="✅ Passed"
+          else
+            REGRESSION_STATUS="❌ Failed"
+          fi
+
+          {
+            echo "## 🧪 API Quality Summary"
+            echo ""
+            echo "### Pipeline Status"
+            echo ""
+            echo "| Stage | Result |"
+            echo "| --- | --- |"
+            echo "| TypeScript Quality Check | ✅ Passed |"
+            echo "| Smoke Tests | ✅ Passed |"
+            echo "| API Regression | ${REGRESSION_STATUS} |"
+            echo ""
+
+            if [ -f reports/quality/quality-summary.md ]; then
+              cat reports/quality/quality-summary.md
+            else
+              echo "> Quality metrics could not be generated."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Generate Allure Report
         if: always()
         run: npm run allure:generate
