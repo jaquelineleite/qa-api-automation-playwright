@@ -40,7 +40,12 @@ jobs:
         run: npm run test:smoke
 
       - name: Execute API Regression
+        id: regression
         run: npm run test:regression
+
+      - name: Generate Quality Metrics
+        if: ${{ always() && steps.regression.outcome != 'skipped' }}
+        run: npm run quality:metrics
 
       - name: Generate Allure Report
         if: always()
@@ -60,6 +65,14 @@ jobs:
         with:
           name: junit-results
           path: reports/junit/results.xml
+          retention-days: 7
+
+      - name: Upload Quality Metrics
+        if: ${{ always() && steps.regression.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: quality-metrics
+          path: reports/quality
           retention-days: 7
 
       - name: Upload Allure Report
