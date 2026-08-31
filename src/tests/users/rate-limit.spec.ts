@@ -38,8 +38,13 @@ test.describe('Rate limit da API', () => {
       await api.dispose();
     }
   });
-
-  test('deve limitar requisições acima de 100 por minuto', async () => {
+  
+  test(
+  'deve limitar requisições acima de 100 por minuto',
+  {
+    tag: '@non-functional',
+  },
+  async () => {
     await epic('API Automation');
     await feature('Rate Limit');
     await story('Limite de 100 requisições por minuto');

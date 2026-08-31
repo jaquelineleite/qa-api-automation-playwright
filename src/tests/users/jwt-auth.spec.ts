@@ -26,50 +26,56 @@ test.describe('Autenticação JWT', () => {
     await api.dispose();
   });
 
-  test('deve acessar rota protegida utilizando token JWT', async () => {
-    await epic('QA API Automation - Playwright & TypeScript');
-    await feature('Autenticação');
-    await story('Utilização do token JWT');
-    await severity('critical');
-    await owner('Jaqueline Fernandes de Andrade');
+  test(
+    'deve acessar rota protegida utilizando token JWT',
+    {
+      tag: ['@smoke', '@regression'],
+    },
+    async () => {
+      await epic('QA API Automation - Playwright & TypeScript');
+      await feature('Autenticação');
+      await story('Utilização do token JWT');
+      await severity('critical');
+      await owner('Jaqueline Fernandes de Andrade');
 
-    const user = createValidUser();
+      const user = createValidUser();
 
-    const createResponse = await usersRequest.createUser(user);
-    const createdBody = await createResponse.json();
+      const createResponse = await usersRequest.createUser(user);
+      const createdBody = await createResponse.json();
 
-    expect(createResponse.status()).toBe(201);
+      expect(createResponse.status()).toBe(201);
 
-    const loginResponse = await authRequest.login(
-      user.email,
-      user.password,
-    );
-
-    const loginBody = await loginResponse.json();
-
-    expect(loginResponse.status()).toBe(200);
-    expect(loginBody.authorization).toContain('Bearer');
-
-    const authenticatedApi = await ApiClient.create(
-      loginBody.authorization,
-    );
-
-    try {
-      const protectedResponse = await authenticatedApi.delete(
-        '/carrinhos/concluir-compra',
+      const loginResponse = await authRequest.login(
+        user.email,
+        user.password,
       );
 
-      const protectedBody = await protectedResponse.json();
+      const loginBody = await loginResponse.json();
 
-      expect(protectedResponse.status()).toBe(200);
-      expect(protectedBody.message).toContain(
-        'Não foi encontrado carrinho',
+      expect(loginResponse.status()).toBe(200);
+      expect(loginBody.authorization).toContain('Bearer');
+
+      const authenticatedApi = await ApiClient.create(
+        loginBody.authorization,
       );
-    } finally {
-      await authenticatedApi.dispose();
-      await usersRequest.deleteUser(createdBody._id);
-    }
-  });
+
+      try {
+        const protectedResponse = await authenticatedApi.delete(
+          '/carrinhos/concluir-compra',
+        );
+
+        const protectedBody = await protectedResponse.json();
+
+        expect(protectedResponse.status()).toBe(200);
+        expect(protectedBody.message).toContain(
+          'Não foi encontrado carrinho',
+        );
+      } finally {
+        await authenticatedApi.dispose();
+        await usersRequest.deleteUser(createdBody._id);
+      }
+    },
+  );
 
   test('não deve acessar rota protegida sem token JWT', async () => {
     await epic('QA API Automation - Playwright & TypeScript');

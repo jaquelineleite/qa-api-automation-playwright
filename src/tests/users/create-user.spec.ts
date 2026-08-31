@@ -23,7 +23,12 @@ test.describe('POST /usuarios', () => {
     await api.dispose();
   });
 
-  test('deve criar um usuário com sucesso', async () => {
+  test(
+    'deve criar um usuário com sucesso',
+    {
+    tag: ['@smoke', '@regression'],
+  } ,
+    async () => {
     await epic('QA API Automation - Playwright & TypeScript');
     await feature('Usuários');
     await story('Criar usuário');
