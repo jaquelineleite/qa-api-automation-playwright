@@ -16,8 +16,8 @@
   "allure:open": "allure open allure-report",
   "allure:serve": "allure serve allure-results",
   "report": "npm run allure:generate && npm run allure:open",
-  "test:rate-limit": "playwright test src/tests/users/rate-limit.spec.ts"
-},
+  "test:non-functional": "playwright test src/tests/users/non-functional-baseline.spec.ts"
+  },
   "keywords": [
     "playwright",
     "api",
