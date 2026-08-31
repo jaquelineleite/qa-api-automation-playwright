@@ -36,8 +36,11 @@ jobs:
       - name: TypeScript Quality Check
         run: npm run typecheck
 
+      - name: Execute Smoke Tests
+        run: npm run test:smoke
+
       - name: Execute API Regression
-        run: npm test
+        run: npm run test:regression
 
       - name: Generate Allure Report
         if: always()
@@ -86,9 +89,9 @@ jobs:
         run: |
           if [ "${{ needs.api-tests.result }}" != "success" ]; then
             echo "QUALITY GATE: FAILED"
-            echo "TypeScript validation or mandatory API regression failed."
+            echo "TypeScript validation, smoke tests, or mandatory API regression failed."
             exit 1
           fi
 
           echo "QUALITY GATE: PASSED"
-          echo "Mandatory API validation completed successfully."
+          echo "Smoke and mandatory API regression completed successfully."
