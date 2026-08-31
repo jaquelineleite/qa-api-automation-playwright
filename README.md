@@ -1,27 +1,32 @@
 # 🧪 API Quality Engineering — Playwright & TypeScript
 
-[![API Tests](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml/badge.svg)](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml)
+[![API Quality Gate](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml/badge.svg)](https://github.com/jaquelineleite/qa-api-automation-playwright/actions/workflows/api-tests.yml)
 
 [![GitLab Pipeline](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/badges/main/pipeline.svg)](https://gitlab.com/jaquelinefdeandrade/qa-api-automation-playwright/-/pipelines)
 
-Projeto de **Quality Engineering aplicado a APIs REST**, utilizando Playwright e TypeScript para transformar riscos de qualidade em verificações automatizadas, rastreáveis e executáveis em CI/CD.
+Projeto de **Quality Engineering aplicado a APIs REST**, utilizando Playwright e TypeScript para transformar riscos de qualidade em verificações automatizadas, rastreáveis, mensuráveis e integradas ao CI/CD.
 
-Mais do que automatizar endpoints, o projeto demonstra decisões relacionadas a:
+Mais do que automatizar endpoints, este projeto demonstra decisões de engenharia relacionadas a:
 
 - estratégia de testes baseada em risco;
+- definição de Smoke, Regression e Non-Functional Testing;
 - escolha da camada adequada de validação;
-- autenticação e autorização;
-- testes funcionais e negativos;
-- validação de contrato;
+- autenticação e autorização com JWT;
+- testes funcionais, negativos e de contrato;
 - gerenciamento do ciclo de vida da massa de testes;
-- quality gates;
-- rastreabilidade entre risco e automação;
-- análise e classificação de falhas;
+- isolamento e cleanup de dados;
+- rastreabilidade entre riscos e testes automatizados;
+- estabilidade da suíte e tratamento de flaky tests;
+- classificação e investigação de falhas;
+- métricas de qualidade;
+- evidências com Playwright, JUnit e Allure;
+- Quality Summary no GitHub Actions;
+- Quality Gate obrigatório;
 - execução contínua em pipelines.
 
-A API pública [ServeRest](https://serverest.dev/) é utilizada como sistema sob teste.
+A [ServeRest](https://serverest.dev/) é utilizada como sistema sob teste para as validações funcionais. As validações não funcionais que geram carga são executadas exclusivamente contra uma instância local e controlada.
 
-> O objetivo não é maximizar a quantidade de testes, mas produzir um sinal de qualidade confiável sobre os riscos selecionados.
+> O objetivo não é maximizar a quantidade de testes, mas produzir um **sinal de qualidade confiável** sobre os riscos selecionados.
 
 ---
 
@@ -45,34 +50,26 @@ Execution Evidence
 Failure Analysis
         ↓
 Quality Gate
-```
-
-Cada cenário deve responder três perguntas:
-
-1. **Qual risco estou cobrindo?**
-2. **Por que essa é a camada adequada para validá-lo?**
-3. **Qual evidência determina se o comportamento está saudável?**
-
-A automação é tratada como consequência da estratégia de qualidade, e não como objetivo isolado.
-
----
 
 # 🧭 Documentação de Engenharia
 
-A arquitetura e as decisões do projeto estão documentadas em:
+As decisões de qualidade, arquitetura, risco, estabilidade e execução estão documentadas em:
 
 | Documento | Objetivo |
 |---|---|
-| [Quality Strategy](docs/quality-strategy.md) | Princípios, estratégia baseada em risco, quality gates e classificação de falhas |
+| [Quality Strategy](docs/quality-strategy.md) | Princípios de Quality Engineering, estratégia baseada em risco e Quality Gates |
 | [Risk Matrix](docs/risk-matrix.md) | Riscos, impacto, probabilidade, prioridade e estratégia de mitigação |
-| [Test Architecture](docs/test-architecture.md) | Critérios utilizados para selecionar a camada de teste |
-| [Traceability Matrix](docs/traceability-matrix.md) | Relação entre risco, cenário automatizado, criticidade e quality gate |
+| [Test Architecture](docs/test-architecture.md) | Critérios utilizados para selecionar a camada adequada de teste |
+| [Traceability Matrix](docs/traceability-matrix.md) | Relação entre risco, cenário automatizado, criticidade, cobertura e Quality Gate |
+| [Test Suite Strategy](docs/test-suite-strategy.md) | Critérios de separação entre Smoke, Regression e Non-Functional Testing |
+| [Test Stability Strategy](docs/test-stability-strategy.md) | Política de flaky tests, retries, investigação e classificação de falhas |
+| [Non-Functional Strategy](docs/non-functional-strategy.md) | Baseline não funcional, métricas, segurança de execução e limitações |
 
 ---
 
 # ⚠️ Risk-Based Testing
 
-Os testes são priorizados de acordo com impacto e risco.
+A cobertura não é definida pela quantidade de testes, mas pela criticidade dos riscos que precisam ser controlados.
 
 Exemplos:
 
@@ -81,14 +78,15 @@ Exemplos:
 | Autenticação | Usuário válido não conseguir autenticar | Crítica | Login positivo |
 | Autenticação | Credenciais inválidas concederem acesso | Crítica | Teste negativo |
 | Autorização | Endpoint protegido aceitar acesso sem JWT | Crítica | Chamada sem token |
-| Usuários | Criação retornar sucesso sem estado válido | Alta | POST + validação posterior |
-| Usuários | Atualização não persistir | Alta | PUT + GET |
-| Usuários | Exclusão não remover recurso | Alta | DELETE + GET |
+| Usuários | Criação retornar sucesso sem estado válido | Alta | POST + validações |
+| Usuários | Atualização não ser persistida | Alta | PUT + GET de confirmação |
+| Usuários | Exclusão retornar sucesso sem remover o recurso | Alta | DELETE + GET de pós-condição |
 | Contrato | Mudança estrutural quebrar consumidores | Alta | JSON Schema + AJV |
-| Massa | Dados compartilhados gerarem falsos resultados | Alta | Faker + fixtures |
-| Rate Limit | Excesso de requisições não ser controlado | Média | Teste opt-in |
+| Massa de teste | Dados compartilhados gerarem falsos resultados | Alta | Faker + fixtures + cleanup |
+| Estabilidade | Falhas intermitentes reduzirem a confiança na suíte | Alta | Zero retries + triagem de falhas |
+| Não funcional | Comportamento degradar sob requisições concorrentes | Média | Baseline local e controlado |
 
-A matriz completa está em:
+A matriz completa está disponível em:
 
 [`docs/risk-matrix.md`](docs/risk-matrix.md)
 
@@ -97,32 +95,37 @@ A matriz completa está em:
 # 🏗️ Arquitetura de Testes
 
 ```text
-                    QUALITY STRATEGY
-                           |
-                           v
-                     RISK ANALYSIS
-                           |
-              +------------+------------+
-              |            |            |
-              v            v            v
-         Functional     Contract   Non-functional
-              |            |            |
-              v            v            v
-          API Tests    JSON Schema   Rate Limit
-              |
-              v
-        Test Evidence
-              |
-              v
-       Failure Analysis
-              |
-              v
-         Quality Gate
+                     QUALITY STRATEGY
+                            |
+                            v
+                       RISK ANALYSIS
+                            |
+              +-------------+-------------+
+              |             |             |
+              v             v             v
+        Functional       Contract    Non-functional
+              |             |             |
+              v             v             v
+         API Tests      JSON Schema   Local Baseline
+              |             |             |
+              +------+------+-------------+
+                     |
+                     v
+               Test Evidence
+                     |
+                     v
+              Quality Metrics
+                     |
+                     v
+              Failure Analysis
+                     |
+                     v
+               Quality Gate
 ```
 
 Este repositório valida diretamente a camada de serviços REST.
 
-Não é utilizada UI para comportamentos que podem ser comprovados de maneira mais rápida, isolada e confiável pela API.
+Não é utilizada uma camada de UI para comportamentos que podem ser comprovados de maneira mais rápida, isolada e confiável pela própria API.
 
 Exemplo:
 
@@ -146,7 +149,7 @@ Frontend
 API
 ```
 
-A escolha da camada é baseada no risco que precisa ser validado.
+A escolha da camada é baseada no **risco que precisa ser validado**, no custo de execução e na qualidade do feedback produzido pelo teste.
 
 ---
 
@@ -159,10 +162,16 @@ A escolha da camada é baseada no risco que precisa ser validado.
 │       └── api-tests.yml
 │
 ├── docs/
+│   ├── non-functional-strategy.md
 │   ├── quality-strategy.md
 │   ├── risk-matrix.md
 │   ├── test-architecture.md
+│   ├── test-stability-strategy.md
+│   ├── test-suite-strategy.md
 │   └── traceability-matrix.md
+│
+├── scripts/
+│   └── generate-quality-metrics.mjs
 │
 ├── src/
 │   ├── client/
@@ -186,7 +195,7 @@ A escolha da camada é baseada no risco que precisa ser validado.
 │   │       ├── create-user.spec.ts
 │   │       ├── jwt-auth.spec.ts
 │   │       ├── login.spec.ts
-│   │       ├── rate-limit.spec.ts
+│   │       ├── non-functional-baseline.spec.ts
 │   │       ├── users-contract.spec.ts
 │   │       ├── users-crud.spec.ts
 │   │       └── users-negative.spec.ts
@@ -204,34 +213,38 @@ A escolha da camada é baseada no risco que precisa ser validado.
 A separação de responsabilidades segue:
 
 ```text
-Client
-  ↓
-Requests
-  ↓
+ApiClient
+    ↓
+Request Layer
+    ↓
 Fixtures / Test Data
-  ↓
-Schemas
-  ↓
-Tests
+    ↓
+Schemas / Contracts
+    ↓
+Test Scenarios
+    ↓
+Reports / Metrics / Evidence
 ```
 
-Essa estrutura permite:
+Essa arquitetura permite:
 
-- centralizar comunicação HTTP;
-- reduzir duplicação;
-- isolar gerenciamento de massa;
-- facilitar manutenção;
-- aumentar legibilidade;
-- reutilizar componentes;
-- reduzir acoplamento entre cenários.
+- centralizar a comunicação HTTP;
+- reduzir duplicação de código;
+- separar comportamento de teste da infraestrutura de acesso à API;
+- controlar o ciclo de vida da massa de dados;
+- reutilizar fixtures e requests;
+- manter contratos separados dos cenários funcionais;
+- aumentar legibilidade e manutenibilidade;
+- reduzir acoplamento entre cenários;
+- produzir evidências e métricas consumíveis pelo CI/CD.
 
 ---
 
 # 🧹 Test Data Lifecycle
 
-A massa de testes é criada dinamicamente utilizando Faker.
+A massa de testes é criada dinamicamente utilizando Faker e gerenciada por fixtures reutilizáveis.
 
-Os cenários CRUD utilizam fixture responsável pelo ciclo de vida do usuário:
+Nos cenários CRUD, a fixture controla o ciclo de vida completo do usuário:
 
 ```text
 Fixture
@@ -247,25 +260,30 @@ Check Resource State
 Cleanup
 ```
 
-O cleanup é tratado de forma idempotente.
+O cleanup é tratado de forma **idempotente**.
 
-Se o próprio cenário remover o usuário, a fixture reconhece que o recurso já não existe.
+Se o próprio cenário remover o usuário, a fixture identifica que o recurso já não existe e não tenta excluí-lo novamente.
 
-Se o usuário continuar disponível após o teste, a fixture realiza a limpeza.
+Se o recurso permanecer disponível após a execução, a fixture realiza a limpeza automaticamente.
 
-Isso reduz:
+Essa estratégia reduz:
 
 - dependência de massa fixa;
-- dados abandonados;
-- conflitos entre execuções;
+- dados abandonados no ambiente;
+- colisões entre execuções;
 - dependência da ordem dos testes;
-- falsos negativos.
+- falsos negativos provocados por estado compartilhado;
+- complexidade dentro dos próprios cenários de teste.
+
+O objetivo é manter os testes independentes e permitir que cada cenário controle o estado necessário para sua própria execução.
 
 ---
 
-# ✅ Validação de Estado
+# ✅ Validação de Estado e Pós-Condições
 
-Os testes não dependem apenas do status retornado pela operação.
+Os testes não consideram apenas o status HTTP retornado pela operação.
+
+Quando o risco envolve alteração de estado, a automação verifica também a **pós-condição**.
 
 ## Update
 
@@ -276,8 +294,10 @@ HTTP 200
         ↓
 GET /usuarios/{id}
         ↓
-validar novo estado persistido
+Validar estado persistido
 ```
+
+Após a atualização, uma nova consulta confirma que os dados realmente foram persistidos.
 
 ## Delete
 
@@ -288,41 +308,41 @@ HTTP 200
         ↓
 GET /usuarios/{id}
         ↓
-usuário não encontrado
+Recurso não encontrado
 ```
 
-Isso permite validar a **pós-condição**, e não somente a resposta imediata da requisição.
+Após a exclusão, uma nova consulta confirma que o recurso deixou de existir.
+
+Essa abordagem evita falsos positivos em que a API retorna sucesso para a operação, mas o estado final não corresponde ao comportamento esperado.
 
 ---
 
 # 🧪 Data-Driven Negative Testing
 
-As validações de campos obrigatórios utilizam abordagem parametrizada.
+As validações de campos obrigatórios utilizam uma abordagem parametrizada para reduzir duplicação sem perder rastreabilidade.
 
-São testadas individualmente as ausências de:
+São validadas individualmente as ausências de:
 
-```text
-nome
-email
-password
-administrador
-```
+- `nome`;
+- `email`;
+- `password`;
+- `administrador`.
 
-A estrutura compartilhada reduz duplicação sem eliminar a rastreabilidade.
+Cada combinação continua sendo apresentada como um cenário independente nos relatórios.
 
-Cada variação continua aparecendo como cenário independente nos relatórios.
+Também fazem parte da cobertura negativa:
 
-Também são testados:
-
-- e-mail duplicado;
-- usuário inexistente;
+- criação com e-mail duplicado;
+- consulta de usuário inexistente;
 - exclusão de usuário inexistente.
+
+A parametrização reduz código repetido, enquanto os cenários permanecem identificáveis para análise de falhas e evidências.
 
 ---
 
 # 🔐 Autenticação e Autorização
 
-Autenticação e autorização são tratadas como riscos diferentes.
+Autenticação e autorização são tratadas como **riscos diferentes** e, portanto, possuem verificações independentes.
 
 ## Autenticação
 
@@ -334,21 +354,23 @@ POST /login
 JWT
 ```
 
-São validados:
+O fluxo de autenticação valida:
 
 - credenciais válidas;
-- senha inválida;
+- credenciais inválidas;
 - status HTTP;
-- mensagem;
-- campo `authorization`;
+- mensagem de resposta;
+- presença do campo `authorization`;
 - prefixo `Bearer`;
-- estrutura JWT em três partes.
+- estrutura básica do JWT em três segmentos.
 
-> A validação estrutural não representa validação criptográfica da assinatura JWT.
+O objetivo não é apenas confirmar que o endpoint `/login` responde, mas verificar se o mecanismo de autenticação produz uma credencial utilizável para os fluxos protegidos.
+
+> A validação estrutural do JWT não representa validação criptográfica da assinatura do token.
 
 ## Autorização
 
-O token obtido é utilizado em uma rota protegida:
+O token obtido no login é utilizado em uma rota protegida:
 
 ```text
 POST /login
@@ -362,17 +384,23 @@ Protected Endpoint
 HTTP 200
 ```
 
-O mesmo recurso é acessado sem token:
+O mesmo recurso também é acessado sem token:
 
 ```text
 No JWT
-  ↓
+   ↓
 Protected Endpoint
-  ↓
+   ↓
 HTTP 401
 ```
 
-Portanto, a simples geração do token não é utilizada como evidência suficiente de autorização.
+Portanto, a simples geração do token não é tratada como evidência suficiente de autorização.
+
+A estratégia valida tanto:
+
+- obtenção da credencial;
+- uso da credencial em uma operação protegida;
+- rejeição do acesso quando a credencial não é fornecida.
 
 ---
 
@@ -384,7 +412,7 @@ O projeto utiliza **AJV + JSON Schema** para validar a estrutura retornada por:
 GET /usuarios
 ```
 
-São verificados elementos como:
+Entre os elementos validados estão:
 
 ```text
 quantidade
@@ -396,51 +424,157 @@ usuarios[]
   └── _id
 ```
 
-Essa camada busca detectar:
+Essa camada busca detectar mudanças que possam afetar consumidores da API, como:
 
 - propriedades removidas;
-- propriedades esperadas ausentes;
+- propriedades obrigatórias ausentes;
 - alterações de tipo;
-- mudanças estruturais que possam afetar consumidores.
+- estruturas incompatíveis;
+- mudanças inesperadas no formato da resposta.
+
+A validação de contrato complementa os testes funcionais: um endpoint pode continuar retornando `HTTP 200` e, ainda assim, introduzir uma quebra estrutural para seus consumidores.
 
 ---
 
-# 🚦 Rate Limit como Teste Opt-in
+# 📊 Non-Functional API Baseline
 
-Existe um cenário para:
+O projeto possui uma validação não funcional separada da regressão funcional.
 
-```text
-100 requisições por minuto
-```
-
-A requisição acima do limite deve retornar:
+Ela é identificada pela tag:
 
 ```text
-HTTP 429
+@non-functional
 ```
 
-Esse teste **não faz parte da regressão padrão**.
+A execução é **opt-in** e restrita a ambiente local.
 
-A decisão é intencional porque:
+O teste se recusa a gerar carga contra hosts externos e aceita somente:
 
-- a aplicação utilizada é uma API pública;
-- o teste gera volume elevado de requisições;
-- a política pode variar conforme o ambiente;
-- uma configuração ausente não deve produzir um falso quality gate funcional.
+```text
+localhost
+127.0.0.1
+::1
+```
 
-Execução:
+Essa decisão evita que uma execução acidental gere carga sobre APIs públicas ou ambientes compartilhados.
+
+## Métricas coletadas
+
+O baseline registra:
+
+- total de requisições;
+- nível de concorrência;
+- requisições com sucesso;
+- requisições com falha;
+- taxa de erro;
+- duração total;
+- tempo médio de resposta;
+- p95 de tempo de resposta;
+- requests por segundo;
+- distribuição de status HTTP.
+
+Exemplo de evidência:
+
+```json
+{
+  "totalRequests": 50,
+  "concurrency": 5,
+  "successfulRequests": 50,
+  "failedRequests": 0,
+  "errorRate": 0,
+  "durationMs": 572,
+  "averageResponseTimeMs": 48.7,
+  "p95ResponseTimeMs": 71,
+  "requestsPerSecond": 87.41,
+  "statusDistribution": {
+    "200": 50
+  }
+}
+```
+
+A evidência é anexada ao resultado do teste como:
+
+```text
+non-functional-baseline
+```
+
+## Execução
+
+Com uma instância local do ServeRest disponível:
 
 ```bash
-RUN_RATE_LIMIT_TEST=true \
-RATE_LIMIT_BASE_URL=https://seu-ambiente.com \
-npm run test:rate-limit
+RUN_NON_FUNCTIONAL_TEST=true \
+NON_FUNCTIONAL_BASE_URL=http://127.0.0.1:3000 \
+NF_TOTAL_REQUESTS=50 \
+NF_CONCURRENCY=5 \
+npm run test:non-functional
 ```
+
+Sem o opt-in:
+
+```bash
+npm run test:non-functional
+```
+
+o cenário permanece:
+
+```text
+skipped
+```
+
+## Baseline não é SLA
+
+O projeto não define thresholds arbitrários de tempo de resposta apenas para tornar o teste mais sofisticado.
+
+Uma medição como:
+
+```text
+p95 = 100 ms
+```
+
+representa um dado observado naquele ambiente e naquela execução.
+
+Ela só deveria se transformar em um requisito como:
+
+```text
+p95 < 150 ms
+```
+
+quando existir um SLA, SLO, requisito técnico ou baseline histórico que justifique esse limite.
+
+Por isso, a implementação atual é tratada como **baseline não funcional controlado**, e não como uma estratégia completa de load, stress ou soak testing.
+
+A estratégia completa está documentada em:
+
+[`docs/non-functional-strategy.md`](docs/non-functional-strategy.md)
 
 ---
 
 # 🚥 Quality Gates
 
-Uma execução da regressão obrigatória não deve ser considerada saudável sem investigação quando houver falha em:
+O pipeline utiliza um Quality Gate obrigatório para impedir que uma mudança seja considerada saudável quando verificações essenciais falham.
+
+O fluxo atual é:
+
+```text
+TypeScript Quality Check
+        ↓
+Smoke Tests
+        ↓
+API Regression
+        ↓
+Quality Metrics
+        ↓
+Quality Summary
+        ↓
+Reports / Evidence
+        ↓
+Quality Gate
+```
+
+Uma falha em TypeScript, Smoke ou Regression impede a aprovação do Quality Gate.
+
+Entre os riscos cobertos pela regressão obrigatória estão:
 
 - autenticação;
 - autorização;
@@ -448,40 +582,61 @@ Uma execução da regressão obrigatória não deve ser considerada saudável se
 - campos obrigatórios;
 - duplicidade;
 - contrato;
-- TypeScript;
-- regressão automatizada obrigatória.
+- persistência de estado;
+- pós-condições;
+- integridade da automação.
 
-O fluxo esperado é:
+Os testes não funcionais permanecem fora desse gate por exigirem ambiente e estratégia de execução específicos.
 
-```text
-Test Failed
-    ↓
-Reproduz?
-  /       \
-não       sim
- ↓         ↓
-Test /    Viola requisito
-Data /     ou contrato?
-Env          |
-             ↓
-        Product Defect
-```
-
-Categorias consideradas:
-
-- Product Defect
-- Test Defect
-- Data Issue
-- Environment Issue
-- Contract Change
+## Investigação de Falhas
 
 Uma falha automatizada não é classificada automaticamente como defeito de produto.
+
+O fluxo de investigação é:
+
+```text
+Failure Detected
+       ↓
+Error / Evidence Analysis
+       ↓
+Reproduction
+       ↓
+Environment / Data Check
+       ↓
+Automation Check
+       ↓
+Requirement / Contract Check
+       ↓
+Root Cause Classification
+```
+
+As possíveis causas incluem:
+
+- Product Failure;
+- Test Automation Failure;
+- Test Data Failure;
+- Environment Failure;
+- Contract Change;
+- Flaky Test.
+
+O Allure também utiliza categorias de **triagem inicial**, como:
+
+- `Environment / Connectivity Signal`;
+- `Timeout / Instability Signal`;
+- `Assertion / Functional Signal`;
+- `Unclassified Failure - Investigation Required`.
+
+Essas categorias funcionam como sinais para investigação e não como diagnóstico automático da causa raiz.
+
+A política completa está documentada em:
+
+[`docs/test-stability-strategy.md`](docs/test-stability-strategy.md)
 
 ---
 
 # 🔎 Traceability
 
-A rastreabilidade conecta:
+A rastreabilidade conecta risco, cenário, implementação, criticidade e decisão de qualidade:
 
 ```text
 Risk
@@ -489,6 +644,8 @@ Risk
 Scenario
   ↓
 Automated Test
+  ↓
+Validation / Evidence
   ↓
 Severity
   ↓
@@ -503,14 +660,18 @@ Atualização não persistir
         ↓
 users-crud.spec.ts
         ↓
-PUT
+PUT /usuarios/{id}
         ↓
 GET posterior
+        ↓
+Validar estado persistido
         ↓
 Critical
         ↓
 Block
 ```
+
+A rastreabilidade ajuda a responder não apenas **quais testes existem**, mas principalmente **por que eles existem e qual risco justificou sua automação**.
 
 Matriz completa:
 
@@ -520,23 +681,128 @@ Matriz completa:
 
 # 📊 Suíte Automatizada
 
-Baseline atual:
+A estratégia atual separa explicitamente os testes por propósito.
+
+## Smoke
 
 ```text
-18 cenários cadastrados
-17 testes executados
-1 cenário opt-in
-0 falhas
+4 cenários críticos
 ```
 
-Execução validada:
+Cobertura:
+
+- login válido;
+- autenticação em rota protegida com JWT;
+- criação de usuário;
+- listagem de usuários.
+
+Execução:
+
+```bash
+npm run test:smoke
+```
+
+Resultado validado:
+
+```text
+4 passed
+```
+
+## Regression
+
+A regressão funcional exclui cenários marcados como `@non-functional`.
+
+Execução:
+
+```bash
+npm run test:regression
+```
+
+Resultado validado:
 
 ```text
 17 passed
+```
+
+## Non-Functional
+
+O baseline não funcional possui execução independente e opt-in.
+
+Execução padrão:
+
+```bash
+npm run test:non-functional
+```
+
+Sem opt-in:
+
+```text
 1 skipped
 ```
 
-O cenário `skipped` corresponde ao teste de rate limit opt-in.
+Execução controlada em ambiente local:
+
+```bash
+RUN_NON_FUNCTIONAL_TEST=true \
+NON_FUNCTIONAL_BASE_URL=http://127.0.0.1:3000 \
+NF_TOTAL_REQUESTS=50 \
+NF_CONCURRENCY=5 \
+npm run test:non-functional
+```
+
+Resultado validado:
+
+```text
+1 passed
+```
+
+A separação entre as suítes permite produzir feedback rápido sem misturar riscos funcionais com execuções que possuem características e requisitos de ambiente diferentes.
+
+---
+
+# 📏 Quality Metrics
+
+Após a regressão, o projeto gera automaticamente métricas a partir do relatório JUnit.
+
+São calculados:
+
+- total de testes;
+- testes aprovados;
+- falhas;
+- erros;
+- testes ignorados;
+- pass rate;
+- duração;
+- status da execução.
+
+Exemplo:
+
+```text
+API QUALITY METRICS
+-------------------
+Total:     17
+Passed:    17
+Failed:    0
+Errors:    0
+Skipped:   0
+Pass Rate: 100%
+Status:    PASSED
+```
+
+Execução manual:
+
+```bash
+npm run quality:metrics
+```
+
+Arquivos produzidos:
+
+```text
+reports/quality/quality-metrics.json
+reports/quality/quality-summary.md
+```
+
+O formato JSON permite consumo automatizado, enquanto o Markdown pode ser utilizado diretamente por pipelines e relatórios.
 
 ---
 
@@ -547,11 +813,15 @@ O cenário `skipped` corresponde ao teste de rate limit opt-in.
 | Test Automation | Playwright |
 | Linguagem | TypeScript |
 | Runtime | Node.js |
+| API Testing | Playwright APIRequestContext |
 | Contract Testing | JSON Schema + AJV |
 | Test Data | Faker |
+| Test Architecture | Fixtures + Request Layer |
 | Reporting | Playwright HTML, Allure, JUnit |
+| Quality Metrics | Node.js + JUnit parsing |
 | CI/CD | GitHub Actions, GitLab CI |
 | Versionamento | Git |
+| Quality Governance | Pull Requests, Branch Protection, Quality Gate |
 
 ---
 
@@ -559,12 +829,12 @@ O cenário `skipped` corresponde ao teste de rate limit opt-in.
 
 ## Pré-requisitos
 
-- Node.js 20+
+- Node.js 22+
 - npm
 - Git
 - Java/JDK para geração local do Allure
 
-Clone:
+Clone o projeto:
 
 ```bash
 git clone https://github.com/jaquelineleite/qa-api-automation-playwright.git
@@ -576,7 +846,7 @@ Entre no diretório:
 cd qa-api-automation-playwright
 ```
 
-Instale:
+Instale as dependências:
 
 ```bash
 npm ci
@@ -586,11 +856,31 @@ npm ci
 
 # ▶️ Execução
 
-## Regressão
+## Validação TypeScript
+
+```bash
+npm run typecheck
+```
+
+## Smoke
+
+```bash
+npm run test:smoke
+```
+
+## Regression
+
+```bash
+npm run test:regression
+```
+
+## Todos os testes Playwright
 
 ```bash
 npm test
 ```
+
+O baseline não funcional continuará `skipped` enquanto o opt-in não estiver habilitado.
 
 ## Usuários
 
@@ -604,40 +894,90 @@ npm run test:users
 npm run test:auth
 ```
 
-## TypeScript
+## Non-Functional Baseline
+
+Sem execução de carga:
 
 ```bash
-npm run typecheck
+npm run test:non-functional
+```
+
+Com instância local do ServeRest disponível:
+
+```bash
+RUN_NON_FUNCTIONAL_TEST=true \
+NON_FUNCTIONAL_BASE_URL=http://127.0.0.1:3000 \
+NF_TOTAL_REQUESTS=50 \
+NF_CONCURRENCY=5 \
+npm run test:non-functional
+```
+
+## Quality Metrics
+
+```bash
+npm run quality:metrics
 ```
 
 ---
 
-# 📈 Reporting
+# 📈 Reporting e Evidências
 
-O projeto produz:
+O projeto produz múltiplos formatos de evidência para diferentes necessidades de investigação e integração.
 
-- Playwright HTML Report;
-- Allure Report;
-- JUnit.
-
-Playwright:
+## Playwright HTML Report
 
 ```bash
 npx playwright show-report reports/playwright-report
 ```
 
-Allure:
+## Allure
+
+Gerar:
 
 ```bash
 npm run allure:generate
+```
+
+Abrir:
+
+```bash
 npm run allure:open
 ```
 
-JUnit:
+O Allure também recebe:
+
+- informações de ambiente;
+- política de retries;
+- contexto do Quality Gate;
+- categorias de triagem de falhas.
+
+## JUnit
 
 ```text
 reports/junit/results.xml
 ```
+
+O JUnit é utilizado também como fonte para geração das métricas de qualidade.
+
+## Quality Metrics
+
+```text
+reports/quality/quality-metrics.json
+reports/quality/quality-summary.md
+```
+
+## Failure Triage
+
+O relatório Allure classifica padrões de falha em sinais iniciais de investigação:
+
+```text
+Environment / Connectivity Signal
+Timeout / Instability Signal
+Assertion / Functional Signal
+Unclassified Failure - Investigation Required
+```
+
+Essas categorias auxiliam a triagem, mas não substituem a investigação de causa raiz.
 
 ---
 
@@ -645,79 +985,204 @@ reports/junit/results.xml
 
 ## GitHub Actions
 
+O pipeline principal implementa uma sequência explícita de validação:
+
 ```text
 Checkout
    ↓
-Setup Node
+Setup Node.js 22
    ↓
 npm ci
    ↓
-TypeScript Check
+TypeScript Quality Check
    ↓
-API Tests
+Smoke Tests
    ↓
-Allure
+API Regression
    ↓
-Artifacts
+Generate Quality Metrics
+   ↓
+Publish Quality Summary
+   ↓
+Generate Reports
+   ↓
+Upload Artifacts
+   ↓
+Quality Gate
 ```
 
-São disponibilizados:
+O Smoke fornece feedback rápido sobre fluxos críticos antes da regressão completa.
 
+A regressão funcional é executada separadamente e exclui cenários `@non-functional`.
+
+Após a execução, o GitHub Actions publica um **Quality Summary** diretamente na página da pipeline com o status das etapas e as métricas da suíte.
+
+Artifacts disponibilizados:
+
+- `playwright-report`;
+- `junit-results`;
+- `quality-metrics`;
 - `allure-report`;
-- `allure-results`;
-- `playwright-report`.
+- `allure-results`.
+
+## Quality Gate
+
+O job `Quality Gate` depende da validação obrigatória da API.
+
+Uma falha nas etapas obrigatórias impede que o gate seja aprovado.
+
+```text
+Mandatory validation success
+           ↓
+     Quality Gate
+        PASSED
+```
+
+ou:
+
+```text
+Mandatory validation failure
+           ↓
+     Quality Gate
+        FAILED
+```
+
+## Branch Protection
+
+A branch `main` utiliza proteção para tornar o Quality Gate parte do fluxo de mudança.
+
+A estratégia adotada inclui:
+
+- alteração através de Pull Request;
+- status check obrigatório;
+- `Quality Gate` obrigatório;
+- branch atualizada antes do merge;
+- resolução de conversas;
+- sem bypass das regras configuradas.
+
+Como o projeto é mantido individualmente, aprovação obrigatória de outro reviewer não é utilizada.
+
+Esse fluxo representa:
+
+```text
+Feature Branch
+      ↓
+Pull Request
+      ↓
+Automated Validation
+      ↓
+Quality Gate
+      ↓
+Merge
+```
 
 ## GitLab CI
 
+O projeto também mantém configuração de pipeline no GitLab como implementação adicional de CI/CD.
+
+A pipeline executa verificações automatizadas e mantém relatórios como artifacts, demonstrando portabilidade da estratégia de automação entre plataformas de integração contínua.
+
+---
+
+# 🧯 Estratégia de Estabilidade
+
+A suíte possui uma política explícita para evitar que instabilidade seja mascarada.
+
+No Playwright:
+
 ```text
-npm ci
-   ↓
-npm run typecheck
-   ↓
-npm test
-   ↓
-npm run allure:generate
+retries: 0
 ```
 
-Relatórios são armazenados como artefatos da pipeline.
+Retries automáticos permanecem desabilitados intencionalmente.
+
+Também é utilizado:
+
+```text
+forbidOnly: true no CI
+```
+
+para impedir que um `test.only()` enviado acidentalmente reduza silenciosamente a cobertura executada pela pipeline.
+
+A estratégia prioriza:
+
+```text
+Failure
+   ↓
+Evidence
+   ↓
+Reproduction
+   ↓
+Classification
+   ↓
+Root Cause
+   ↓
+Correction
+```
+
+em vez de:
+
+```text
+Failure
+   ↓
+Automatic Retry
+   ↓
+Passed
+   ↓
+Instability Hidden
+```
+
+Detalhes:
+
+[`docs/test-stability-strategy.md`](docs/test-stability-strategy.md)
 
 ---
 
 # 🔒 Limites da Cobertura
 
-Este projeto **não afirma cobertura total de qualidade do sistema**.
+Este projeto **não afirma cobertura total da qualidade do sistema**.
 
 A cobertura atual não representa:
 
 - code coverage do backend;
 - pentest;
 - OWASP API Security completo;
-- validação criptográfica JWT;
-- performance completa;
-- stress;
-- endurance;
-- observabilidade interna;
-- banco de dados interno;
-- infraestrutura da ServeRest.
+- validação criptográfica da assinatura JWT;
+- testes completos de autorização por papéis e permissões;
+- estratégia completa de load testing;
+- stress testing;
+- soak/endurance testing;
+- observabilidade interna da aplicação;
+- validação direta do banco de dados;
+- infraestrutura interna da ServeRest;
+- disponibilidade ou resiliência de dependências distribuídas.
 
-Esses itens exigiriam escopo e níveis de acesso diferentes.
+Esses itens exigiriam escopo, requisitos, ambientes ou níveis de acesso diferentes.
 
-Essa distinção faz parte da estratégia de qualidade: **automatizar um cenário não significa declarar cobertura sobre uma área inteira.**
+Essa distinção faz parte da estratégia de Quality Engineering:
+
+> **Automatizar um cenário não significa declarar cobertura sobre uma área inteira.**
 
 ---
 
-# 🔭 Evoluções Planejadas
+# 🔭 Evoluções Futuras
 
-Próximas possibilidades de evolução:
+O projeto está funcionalmente consolidado para o escopo atual. Evoluções futuras devem ser guiadas por novos riscos ou requisitos, e não apenas pelo aumento da quantidade de testes.
 
-- classificação formal entre smoke e regression;
-- métricas de estabilidade;
-- estratégia de flaky tests;
-- expansão de contract testing;
-- observabilidade;
-- análise automatizada de falhas;
+Possibilidades:
+
+- expansão de contract testing para outros recursos;
+- baseline histórico de métricas entre builds;
+- definição de thresholds baseada em SLA/SLO real;
+- comparação automática de performance entre execuções;
+- p99 e outras métricas não funcionais;
+- correlação com CPU, memória e observabilidade;
+- validações adicionais de segurança de API;
+- integração com k6 ou JMeter quando houver necessidade de carga especializada;
+- análise assistida de falhas;
 - AI Quality Engineering;
-- integração futura com agentes e MCP.
+- agentes de qualidade;
+- integração futura através de MCP.
 
 ---
 
@@ -727,4 +1192,4 @@ Próximas possibilidades de evolução:
 
 Quality Assurance | Quality Engineering | Test Automation
 
-GitHub: https://github.com/jaquelineleite
+GitHub: [github.com/jaquelineleite](https://github.com/jaquelineleite)
