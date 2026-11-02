@@ -50,7 +50,7 @@ Cobertura é tratada como a relação entre:
 | R11 | Autenticação/autorização ser contornada | JWT presente x ausente em recurso protegido | `jwt-auth.spec.ts` | API / Security | Critical | Partial | Block |
 | R12 | Massa compartilhada provocar resultados inconsistentes | Faker + lifecycle automático através de fixture | `user.fixture.ts` | Test Infrastructure | High | Process/Automated | Block if infrastructure failure |
 | R13 | Instabilidade externa gerar falso defeito | classificação entre produto, ambiente, dados e teste | Quality Strategy | Environment | Medium | Process | Investigation |
-| R14 | Limite de requisições apresentar comportamento inadequado | deve limitar requisições acima de 100 por minuto | `rate-limit.spec.ts` | Non-functional | Medium | Opt-in | Non-blocking by default |
+| R14 | Limite de requisições apresentar comportamento inadequado | Baseline não funcional local; limite de 100/min não comprovado | `non-functional-baseline.spec.ts` | Non-functional | Medium | Partial / Opt-in | Non-blocking by default |
 | R15 | Falha de automação ser classificada como defeito de produto | processo de classificação de falhas | Quality Strategy | Quality Process | High | Process | Investigation |
 
 ---
@@ -118,3 +118,11 @@ PUT
 GET posterior
         ↓
 Quality Gate = Block
+
+## Pendências de segurança e contratos (auditoria estática)
+
+- JWT malformado: cenário proposto na branch `feature/api-security-hardening`; validar resultado antes de declarar cobertura.
+- Headers HTTP: verificar Content-Type em `GET /usuarios`; demais headers dependem de contrato/infraestrutura.
+- `GET /usuarios` retorna propriedade `password` conforme schema atual: investigar exposição de dados sensíveis antes de alterar contrato.
+- R14 não deve ser descrito como teste de rate limit de 100 requisições/minuto sem evidência de cenário e execução.
+- Branches de melhorias são independentes; consolidar e executar regressão antes de atualizar status para Automated.
