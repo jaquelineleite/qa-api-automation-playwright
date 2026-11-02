@@ -35,6 +35,7 @@ test.describe('Contrato da API de usuários', () => {
     const body = await response.json();
 
     expect(response.status()).toBe(200);
+    expect(response.headers()['content-type'] ?? '').toMatch(/^application\/json(?:\s*;|$)/i);
 
     const ajv = new Ajv({ allErrors: true });
     const validate = ajv.compile(usersListSchema);
