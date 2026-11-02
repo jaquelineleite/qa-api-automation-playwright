@@ -41,7 +41,9 @@ test.describe('POST /login', () => {
 
     expect(createResponse.status()).toBe(201);
 
-    const loginResponse = await authRequest.login(
+    try {
+    try {
+  const loginResponse = await authRequest.login(
       user.email,
       user.password,
     );
@@ -61,7 +63,9 @@ test.describe('POST /login', () => {
       tokenParts.every((part: string) => part.length > 0),
     ).toBeTruthy();
 
-    await usersRequest.deleteUser(createdBody._id);
+    } finally {
+      await usersRequest.deleteUser(createdBody._id);
+    }
   },
 );
 
@@ -89,6 +93,10 @@ test.describe('POST /login', () => {
   expect(loginResponse.status()).toBe(401);
   expect(loginBody.message).toBe('Email e/ou senha inválidos');
 
-  await usersRequest.deleteUser(createdBody._id);
+  } finally {
+    await usersRequest.deleteUser(createdBody._id);
+  }
 });
+
+  test.afterAll(async () => { await api.dispose(); });
 });
