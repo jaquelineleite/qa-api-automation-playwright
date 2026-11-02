@@ -45,6 +45,7 @@ test.describe('Autenticação JWT', () => {
 
       expect(createResponse.status()).toBe(201);
 
+      try {
       const loginResponse = await authRequest.login(
         user.email,
         user.password,
@@ -72,6 +73,8 @@ test.describe('Autenticação JWT', () => {
         );
       } finally {
         await authenticatedApi.dispose();
+      }
+      } finally {
         await usersRequest.deleteUser(createdBody._id);
       }
     },
