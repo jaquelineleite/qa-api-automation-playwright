@@ -34,9 +34,11 @@ jobs:
         run: npm ci
 
       - name: TypeScript Quality Check
+        id: typecheck
         run: npm run typecheck
 
       - name: Execute Smoke Tests
+        id: smoke
         run: npm run test:smoke
 
       - name: Execute API Regression
@@ -64,8 +66,8 @@ jobs:
             echo ""
             echo "| Stage | Result |"
             echo "| --- | --- |"
-            echo "| TypeScript Quality Check | ✅ Passed |"
-            echo "| Smoke Tests | ✅ Passed |"
+            echo "| TypeScript Quality Check | ${{ steps.typecheck.outcome }} |"
+            echo "| Smoke Tests | ${{ steps.smoke.outcome }} |"
             echo "| API Regression | ${REGRESSION_STATUS} |"
             echo ""
 
