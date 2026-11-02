@@ -77,6 +77,16 @@ test.describe('Autenticação JWT', () => {
     },
   );
 
+  test('não deve acessar rota protegida com JWT malformado', async () => {
+    const invalidApi = await ApiClient.create('Bearer invalid.jwt.token');
+    try {
+      const response = await invalidApi.delete('/carrinhos/concluir-compra');
+      expect(response.status()).toBe(401);
+    } finally {
+      await invalidApi.dispose();
+    }
+  });
+
   test('não deve acessar rota protegida sem token JWT', async () => {
     await epic('QA API Automation - Playwright & TypeScript');
     await feature('Autenticação');
