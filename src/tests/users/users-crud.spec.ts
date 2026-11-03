@@ -25,11 +25,11 @@ test.describe('CRUD de usuários', () => {
       const response = await usersRequest.getUsers();
       const status = response.status();
       const contentType = response.headers()['content-type'] ?? '';
-      const responseText = await response.text();
       const responseCategory = classifyApiFailure(status, contentType);
 
       expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; category=${responseCategory}`).toBe(200);
-      expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toContain('application/json');
+      expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toMatch(/^application\/json(?:\s*;|$)/i);
+      const responseText = await response.text();
       let body: unknown;
       try {
         body = JSON.parse(responseText);
