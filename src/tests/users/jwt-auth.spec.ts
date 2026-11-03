@@ -103,4 +103,29 @@ test.describe('Autenticação JWT', () => {
     expect(response.status()).toBe(401);
     expect(body.message).toContain('Token de acesso');
   });
+
+  test('não deve acessar rota protegida com token JWT inválido', async () => {
+    await epic('QA API Automation - Playwright & TypeScript');
+    await feature('Autenticação');
+    await story('Rejeição de token JWT inválido');
+    await severity('critical');
+    await owner('Jaqueline Fernandes de Andrade');
+
+    const invalidTokenApi = await ApiClient.create('Bearer token-invalido');
+
+    try {
+      const response = await invalidTokenApi.delete(
+        '/carrinhos/concluir-compra',
+      );
+      const body = await response.json();
+
+      expect(response.status()).toBe(401);
+      expect(body).toHaveProperty('message');
+      expect(typeof body.message).toBe('string');
+      expect(body.message.trim().length).toBeGreaterThan(0);
+    } finally {
+      await invalidTokenApi.dispose();
+    }
+  });
+
 });
