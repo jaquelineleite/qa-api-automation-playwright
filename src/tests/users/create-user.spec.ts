@@ -44,6 +44,7 @@ test.describe('POST /usuarios', () => {
     expect(body.message).toBe('Cadastro realizado com sucesso');
     expect(body._id).toBeTruthy();
 
+    try {
     const getResponse = await usersRequest.getUserById(body._id);
     const createdUser = await getResponse.json();
 
@@ -53,6 +54,8 @@ test.describe('POST /usuarios', () => {
     expect(createdUser.password).toBe(user.password);
     expect(createdUser.administrador).toBe(user.administrador);
 
-    await usersRequest.deleteUser(body._id);
+    } finally {
+      await usersRequest.deleteUser(body._id);
+    }
   });
 });

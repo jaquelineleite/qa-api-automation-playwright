@@ -22,10 +22,26 @@ test.describe('CRUD de usuários', () => {
       await owner('Jaqueline Fernandes de Andrade');
 
       const response = await usersRequest.getUsers();
-      const body = await response.json();
+      const status = response.status();
+      const contentType = response.headers()['content-type'] ?? '';
+      const responseText = await response.text();
+      const responseCategory = status === 429 || responseText.trim() === 'Rate exceeded.' ? 'possible rate limit' : 'unexpected API response';
 
-      expect(response.status()).toBe(200);
+      expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; category=${responseCategory}`).toBe(200);
+      expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toContain('application/json');
+      let body: unknown;
+      try {
+        body = JSON.parse(responseText);
+      } catch {
+        throw new Error(`GET /usuarios returned invalid JSON (HTTP ${status}; content-type=${contentType}; category=${responseCategory})`);
+      }
+      expect(body).toBeTruthy();
+      expect(typeof body).toBe('object');
       expect(body).toHaveProperty('quantidade');
+      expect(body).toHaveProperty('usuarios');
+      if (typeof body !== 'object' || body === null || !('usuarios' in body)) {
+        throw new Error('GET /usuarios returned an unexpected JSON structure');
+      }
       expect(Array.isArray(body.usuarios)).toBeTruthy();
     },
   );

@@ -47,10 +47,10 @@ Cobertura é tratada como a relação entre:
 | R08 | Usuário duplicado ser criado indevidamente | não deve criar usuário com e-mail duplicado | `users-negative.spec.ts` | API | Critical | Automated | Block |
 | R09 | Campos obrigatórios ausentes serem aceitos | nome, e-mail, password e administrador ausentes | `users-negative.spec.ts` | API | Normal/High | Automated | Block |
 | R10 | Alteração estrutural quebrar consumidores | validação de JSON Schema com AJV | `users-contract.spec.ts` | Contract | High | Automated | Block |
-| R11 | Autenticação/autorização ser contornada | JWT presente x ausente em recurso protegido | `jwt-auth.spec.ts` | API / Security | Critical | Partial | Block |
+| R11 | Autenticação/autorização ser contornada | JWT válido, ausente e malformado em recurso protegido | `jwt-auth.spec.ts` | API / Security | Critical | Partial | Block |
 | R12 | Massa compartilhada provocar resultados inconsistentes | Faker + lifecycle automático através de fixture | `user.fixture.ts` | Test Infrastructure | High | Process/Automated | Block if infrastructure failure |
 | R13 | Instabilidade externa gerar falso defeito | classificação entre produto, ambiente, dados e teste | Quality Strategy | Environment | Medium | Process | Investigation |
-| R14 | Limite de requisições apresentar comportamento inadequado | deve limitar requisições acima de 100 por minuto | `rate-limit.spec.ts` | Non-functional | Medium | Opt-in | Non-blocking by default |
+| R14 | Limite de requisições apresentar comportamento inadequado | Baseline não funcional local; limite de 100/min não comprovado | `non-functional-baseline.spec.ts` | Non-functional | Medium | Partial / Opt-in | Non-blocking by default |
 | R15 | Falha de automação ser classificada como defeito de produto | processo de classificação de falhas | Quality Strategy | Quality Process | High | Process | Investigation |
 
 ---
@@ -87,7 +87,7 @@ resposta de sucesso
 GET posterior
   ↓
 recurso não encontrado
-
+```
 
 ### Por que esse documento é importante
 
@@ -118,3 +118,12 @@ PUT
 GET posterior
         ↓
 Quality Gate = Block
+```
+
+## Pendências de segurança e contratos (auditoria estática)
+
+- JWT malformado: cenário automatizado em `jwt-auth.spec.ts`, validado na regressão do PR #16 (18/18 testes). Cobertura geral de autorização permanece parcial; não equivale a OWASP API Security completo.
+- Headers HTTP: Content-Type validado em `GET /usuarios`; demais headers dependem de contrato/infraestrutura.
+- `GET /usuarios` retorna propriedade `password` conforme schema atual: investigar exposição de dados sensíveis antes de alterar contrato.
+- R14 não deve ser descrito como teste de rate limit de 100 requisições/minuto sem evidência de cenário e execução.
+- PR #16 consolida os PRs #11 a #15; Smoke (4/4), regressão (18/18) e Quality Gate aprovados na execução #47. Validar novamente após novos commits antes de merge.

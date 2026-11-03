@@ -52,12 +52,13 @@ export const test = base.extend<UserFixtures>({
         const getResponse = await usersRequest.getUserById(id);
 
         if (getResponse.status() === 200) {
-          await usersRequest.deleteUser(id);
+          const deleteResponse = await usersRequest.deleteUser(id);
+          expect(deleteResponse.status()).toBe(200);
         }
       } catch (error) {
-        console.warn(
+        throw new Error(
           `[cleanup] Não foi possível validar/remover o usuário de teste ${id}`,
-          error
+          { cause: error },
         );
       }
     }
