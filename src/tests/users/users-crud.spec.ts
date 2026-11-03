@@ -34,7 +34,13 @@ test.describe('CRUD de usuários', () => {
       } catch {
         throw new Error(`GET /usuarios returned invalid JSON (HTTP ${status}; content-type=${contentType}; response=${responseText.slice(0, 200)})`);
       }
+      expect(body).toBeTruthy();
+      expect(typeof body).toBe('object');
       expect(body).toHaveProperty('quantidade');
+      expect(body).toHaveProperty('usuarios');
+      if (typeof body !== 'object' || body === null || !('usuarios' in body)) {
+        throw new Error('GET /usuarios returned an unexpected JSON structure');
+      }
       expect(Array.isArray(body.usuarios)).toBeTruthy();
     },
   );
