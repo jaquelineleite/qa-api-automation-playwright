@@ -22,9 +22,18 @@ test.describe('CRUD de usuários', () => {
       await owner('Jaqueline Fernandes de Andrade');
 
       const response = await usersRequest.getUsers();
-      const body = await response.json();
+      const status = response.status();
+      const contentType = response.headers()['content-type'] ?? '';
+      const responseText = await response.text();
 
-      expect(response.status()).toBe(200);
+      expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; response=${responseText.slice(0, 200)}`).toBe(200);
+      expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toContain('application/json');
+      let body: unknown;
+      try {
+        body = JSON.parse(responseText);
+      } catch {
+        throw new Error(`GET /usuarios returned invalid JSON (HTTP ${status}; content-type=${contentType}; response=${responseText.slice(0, 200)})`);
+      }
       expect(body).toHaveProperty('quantidade');
       expect(Array.isArray(body.usuarios)).toBeTruthy();
     },
