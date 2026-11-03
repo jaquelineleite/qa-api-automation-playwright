@@ -25,14 +25,15 @@ test.describe('CRUD de usuários', () => {
       const status = response.status();
       const contentType = response.headers()['content-type'] ?? '';
       const responseText = await response.text();
+      const responseCategory = status === 429 || responseText.trim() === 'Rate exceeded.' ? 'possible rate limit' : 'unexpected API response';
 
-      expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; response=${responseText.slice(0, 200)}`).toBe(200);
+      expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; category=${responseCategory}`).toBe(200);
       expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toContain('application/json');
       let body: unknown;
       try {
         body = JSON.parse(responseText);
       } catch {
-        throw new Error(`GET /usuarios returned invalid JSON (HTTP ${status}; content-type=${contentType}; response=${responseText.slice(0, 200)})`);
+        throw new Error(`GET /usuarios returned invalid JSON (HTTP ${status}; content-type=${contentType}; category=${responseCategory})`);
       }
       expect(body).toBeTruthy();
       expect(typeof body).toBe('object');
