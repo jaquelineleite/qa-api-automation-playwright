@@ -1,5 +1,6 @@
 import { test, expect } from '../../fixtures/user.fixture';
 import { createValidUser } from '../../data/user.data';
+import { classifyApiFailure } from '../../utils/api-failure';
 import {
   epic,
   feature,
@@ -25,7 +26,7 @@ test.describe('CRUD de usuários', () => {
       const status = response.status();
       const contentType = response.headers()['content-type'] ?? '';
       const responseText = await response.text();
-      const responseCategory = status === 429 || responseText.trim() === 'Rate exceeded.' ? 'possible rate limit' : 'unexpected API response';
+      const responseCategory = classifyApiFailure(status, contentType);
 
       expect(status, `GET /usuarios returned HTTP ${status}; content-type=${contentType}; category=${responseCategory}`).toBe(200);
       expect(contentType, `GET /usuarios returned an unexpected content type (HTTP ${status})`).toContain('application/json');
