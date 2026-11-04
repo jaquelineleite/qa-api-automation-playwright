@@ -48,3 +48,15 @@ Documentation-only change. No automated tests executed. No merge requested.
 **Status:** Source/contract verified; proposed regression not yet implemented or executed. Shared public instance is unsuitable for deterministic destructive cross-user testing.
 
 Source files: https://github.com/ServeRest/ServeRest/blob/trunk/src/swagger/translations/pt-BR.js ; https://github.com/ServeRest/ServeRest/blob/trunk/src/services/carrinhos-service.js ; https://github.com/ServeRest/ServeRest/blob/trunk/test/integration/carrinhos/concluirCompra.test.js
+
+## Implementation update — 2026-11-04
+
+The opt-in local regression has been implemented in `src/tests/users/cart-ownership-local.spec.ts`. It creates an administrator, users A/B with independent tokens, a product and A's cart; verifies B cannot finish A's cart; verifies A's ownership and successful checkout; then attempts dependency-safe cleanup.
+
+Run only against an isolated local ServeRest instance:
+
+```bash
+RUN_OWNERSHIP_TEST=true API_BASE_URL=http://127.0.0.1:3000 npx playwright test src/tests/users/cart-ownership-local.spec.ts
+```
+
+**Execution evidence: pending.** The default CI does not run this integration scenario because `RUN_OWNERSHIP_TEST` is unset. A green CI gate alone must not be described as proof of cross-user ownership isolation. This is a regression of the checkout behavior, not a general BOLA/IDOR audit. Cleanup is best effort; use a disposable local environment.
