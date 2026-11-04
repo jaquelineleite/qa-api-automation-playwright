@@ -32,10 +32,12 @@ test.describe('Contrato da API de usuários', () => {
     await owner('Jaqueline Fernandes de Andrade');
 
     const response = await usersRequest.getUsers();
-    const body = await response.json();
-
-    expect(response.status()).toBe(200);
-    expect(response.headers()['content-type'] ?? '').toMatch(/^application\/json(?:\s*;|$)/i);
+    // Check the HTTP envelope before parsing to avoid opaque JSON errors on rate limiting.
+    const status = response.status();
+    const contentType = response.headers()['content-type'] ?? '';
+    expect(status, `GET /usuarios returned HTTP ${status}`).toBe(200);
+    expect(contentType).toMatch(/^application\/json(?:\s*;|$)/i);
+    const body: unknown = await response.json();
 
     const ajv = new Ajv({ allErrors: true });
     const validate = ajv.compile(usersListSchema);
@@ -45,5 +47,9 @@ test.describe('Contrato da API de usuários', () => {
       isValid,
       `Erros de contrato: ${JSON.stringify(validate.errors)}`,
     ).toBeTruthy();
+    if (!isValid) return;
+    // Schema narrowing is established by AJV at runtime; do not log response payloads.
+    const result = body as { quantidade: number; usuarios: unknown[] };
+    expect(result.quantidade).toBe(result.usuarios.length);
   });
 });
