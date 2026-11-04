@@ -122,20 +122,63 @@ jobs:
           path: allure-results
           retention-days: 7
 
+  ownership-local:
+    name: Local Cart Ownership Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      serverest:
+        image: serverest/serverest:latest
+        ports:
+          - 3000:3000
+    env:
+      RUN_OWNERSHIP_TEST: 'true'
+      API_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Wait for isolated ServeRest
+        run: |
+          for i in $(seq 1 40); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3000/usuarios; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'Local ServeRest did not become ready'
+          exit 1
+      - name: Execute cross-user ownership regression
+        run: npx playwright test src/tests/users/cart-ownership-local.spec.ts --workers=1
+      - name: Upload local ownership test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ownership-local-junit
+          path: reports/junit/results.xml
+          if-no-files-found: warn
+          retention-days: 7
+
   quality-gate:
     name: Quality Gate
-    needs: api-tests
+    needs: [api-tests, ownership-local]
     if: always()
     runs-on: ubuntu-latest
 
     steps:
       - name: Evaluate quality gate
         run: |
-          if [ "${{ needs.api-tests.result }}" != "success" ]; then
+          if [ "${{ needs.api-tests.result }}" != "success" ] || [ "${{ needs.ownership-local.result }}" != "success" ]; then
             echo "QUALITY GATE: FAILED"
-            echo "TypeScript validation, smoke tests, or mandatory API regression failed."
+            echo "TypeScript, smoke, API regression, or local ownership regression failed."
             exit 1
           fi
 
           echo "QUALITY GATE: PASSED"
-          echo "Smoke and mandatory API regression completed successfully."
+          echo "Smoke, API regression and isolated ownership regression completed successfully."
