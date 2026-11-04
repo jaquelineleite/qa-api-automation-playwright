@@ -128,7 +128,7 @@ jobs:
     timeout-minutes: 10
     services:
       serverest:
-        image: serverest/serverest:latest
+        image: paulogoncalvesbh/serverest:latest
         ports:
           - 3000:3000
     env:
