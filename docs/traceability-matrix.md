@@ -127,3 +127,14 @@ Quality Gate = Block
 - `GET /usuarios` retorna propriedade `password` conforme schema atual: investigar exposição de dados sensíveis antes de alterar contrato.
 - R14 não deve ser descrito como teste de rate limit de 100 requisições/minuto sem evidência de cenário e execução.
 - PR #16 consolida os PRs #11 a #15; Smoke (4/4), regressão (18/18) e Quality Gate aprovados na execução #47. Validar novamente após novos commits antes de merge.
+
+## Complemento PR #18 — classificação HTTP e ambiente controlado
+
+| Risk ID | Risco | Evidência | Cobertura | Quality Gate |
+| --- | --- | --- | --- | --- |
+| R16 | Respostas HTTP inesperadas serem classificadas incorretamente | `src/tests/users/api-failure.spec.ts`: 7 casos determinísticos de 200, 400, 401, 403, 429 e 500 e Content-Type | Automated (classificador, não comportamento real do servidor) | Block via regression |
+| R17 | Testes de autorização afetarem dados de usuários em instância compartilhada | `API_BASE_URL` em `src/client/apiClient.ts` e `playwright.config.ts` | Partial: configuração pronta, cenário A/B pendente | Não executar cross-user na API pública |
+
+**Execução:** `API_BASE_URL=http://localhost:3000 npm run test:regression` após iniciar uma instância ServeRest local. Não representa evidência de execução até o CI ou ambiente local confirmar os resultados.
+
+**Limites:** R16 não prova rate limiting real. R17 não prova isolamento entre usuários; requer teste de integração controlado, com setup e teardown. A exposição do campo `password` segue sob investigação, não deve ser tratada como comportamento seguro por existir no schema.
