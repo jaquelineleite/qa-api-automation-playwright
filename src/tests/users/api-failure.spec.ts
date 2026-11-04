@@ -13,7 +13,7 @@ test.describe('Diagnóstico HTTP determinístico (sem chamadas externas)', () =>
   ];
 
   for (const [status, contentType, expected] of scenarios) {
-    test(`HTTP ${status} / ${contentType} => ${expected}`, async () => {
+    test(`HTTP ${status} / ${contentType} => ${expected}`, { tag: '@regression' }, async () => {
       expect(classifyApiFailure(status, contentType)).toBe(expected);
     });
   }
