@@ -21,6 +21,16 @@ GitHub Actions run 41740013743: 19/19 testes aprovados, TypeScript, Smoke, Regre
 | A07 | Resiliência/timeout | playwright.config.ts define timeout 30000 e retries 0 | Política básica presente | Testar parsing de respostas inesperadas e classificação sem mascarar falhas | Média |
 | A08 | CI/CD | .github/workflows/api-tests.yml | Quality Gate presente | Validar cada PR e conferir artefatos; não fazer merge sem revisão | Alta |
 
+## Implementação no PR #18 (estado em 2026-11-04)
+
+- Classificador determinístico HTTP implementado em `src/utils/api-failure.ts`, com sete cenários em `src/tests/users/api-failure.spec.ts` marcados `@regression`.
+- Verificações de status e Content-Type antes de interpretar JSON adicionadas em `users-contract.spec.ts` e na listagem de `users-crud.spec.ts`.
+- `API_BASE_URL` configurável em `src/client/apiClient.ts` e `playwright.config.ts`, com padrão `https://serverest.dev`.
+- Matriz de rastreabilidade atualizada com R16 e R17.
+- Pendente: cenário automatizado de isolamento entre usuários A/B em instância local, revisão da exposição de `password` e evidência de execução específica do cenário A/B.
+- Os checks anteriores ao último commit não comprovam a aprovação dos commits futuros; conferir GitHub Actions no head antes do merge.
+- Este documento não comprova uma auditoria OWASP integral nem análise de posts específicos de Lilian Borba.
+
 ## Critérios de aceite
 1. Testes novos devem comprovar comportamento especificado, sem pressupor que a ServeRest implementa ownership/BOLA.
 2. Não fazer testes de carga ou rate-limit agressivos contra serverest.dev.
